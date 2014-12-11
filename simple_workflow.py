@@ -25,7 +25,6 @@ hepmc_converter.Outputs.genparticles.Path="all_genparticles"
 from Configurables import JetClustering_MCParticleCollection_GenJetCollection_
 genjet_clustering = JetClustering_MCParticleCollection_GenJetCollection_(
     "GenJetClustering",
-    verbose=False
     )
 genjet_clustering.Inputs.particles.Path='all_genparticles'
 # giving a meaningful name for the output product

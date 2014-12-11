@@ -61,8 +61,6 @@ private:
   /// number of jets for exclusive jets 
   int m_njets; 
 
-  /// verbosity flag
-  bool m_verbose; 
 };
 
 
@@ -81,7 +79,6 @@ GaudiAlgorithm(name, svcLoc)
   declareProperty("ptMin", m_ptMin = 10, "Minimum pT of jets for inclusiveJets");
   declareProperty("dcut", m_dcut = -1, "dcut for exclusive jets");
   declareProperty("nJets", m_njets = -1.0, "Number of jets for exclusive jets");
-  declareProperty("verbose", m_verbose = false, "Boolean flag for verbosity");
 }
 
 template<class P, class J>
@@ -166,8 +163,6 @@ template< class P, class J>
   std::vector<fastjet::PseudoJet> pjets = cs.inclusive_jets(m_ptMin);
 
   J* jets = new J();
-  if(m_verbose)
-    std::cout<<"njets = "<<pjets.size()<<std::endl;
   for(auto pjet : pjets) {
     auto& jet = jets->create();
     BareJet& core = jet.mod().Core; 
@@ -176,8 +171,6 @@ template< class P, class J>
     core.P4.Phi = pjet.phi();
     core.P4.Mass = pjet.m();
     //COLIN need to set the jet area
-    if(m_verbose)
-      std::cout<<pjet.e()<<" "<<pjet.eta()<<" "<<pjet.phi()<<std::endl;
   }
   m_jets.put(jets);
   // m_jets.put(output);

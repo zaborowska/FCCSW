@@ -10,6 +10,7 @@
 /** @class G4FtfpBert SimG4Components/src/G4FtfpBert.h G4FtfpBert.h
  *
  *  FTFP_BERT physics list tool.
+ *  Property \b"useCoupledTransportation" can be set from the job options file. Default: false.
  *
  *  @author Anna Zaborowska
  */
@@ -31,6 +32,9 @@ public:
    *  @return pointer to G4VModularPhysicsList
    */
   virtual G4VModularPhysicsList* getPhysicsList();
+private:
+  /// Flag indicating if coupled transportation should be used. Set by job options.
+  bool m_coupledTransport;
 
 };
 

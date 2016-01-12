@@ -15,3 +15,8 @@ gaudi_add_module(SimTests
 		 src/*.cpp
 		 INCLUDE_DIRS ROOT FWCore GaudiKernel Geant4 DataObjects FCCEDM ALBERS
        LINK_LIBRARIES GaudiAlgLib FWCore DataObjects ROOT GaudiKernel Geant4 FCCEDM ALBERS)
+
+
+include(CTest)
+gaudi_add_test(TestToolWithOutput
+               FRAMEWORK options/toolWithOutputTest.py)

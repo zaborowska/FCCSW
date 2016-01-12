@@ -3,6 +3,7 @@
 // FCCSW
 #include "SimG4Common/Units.h"
 #include "SimG4Interface/IG4SimSvc.h"
+#include "SimG4Common/ExitTrackerParticleInformation.h"
 
 // albers
 #include "datamodel/MCParticleCollection.h"
@@ -56,6 +57,11 @@ StatusCode G4FullSimAlg::execute() {
   // here specify what is the output of interest
   saveHCalDeposits(*constevent);
   saveTrackerHits(*constevent);
+  for(int i=0; i<constevent->GetNumberOfPrimaryVertex();i++) {
+    for(int j=0;j<constevent->GetPrimaryVertex(i)->GetNumberOfParticle();j++)
+      if(constevent->GetPrimaryVertex(i)->GetPrimary(j)->GetUserInformation())
+        info()<<"==========\t"<<dynamic_cast<sim::ExitTrackerParticleInformation*>(constevent->GetPrimaryVertex(i)->GetPrimary(j)->GetUserInformation())->entranceEta()<<endmsg;
+  }
   m_geantSvc->terminateEvent();
   return StatusCode::SUCCESS;
 }

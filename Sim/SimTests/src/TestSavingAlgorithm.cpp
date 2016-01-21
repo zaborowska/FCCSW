@@ -17,8 +17,10 @@ StatusCode TestSavingAlgorithm::initialize() {
 }
 
 StatusCode TestSavingAlgorithm::execute() {
+  warning()<<"TestSavingAlgorithm::execute 1"<<endmsg;
   if ( ! (m_toolWithOutput->saveOutput()) ) {
     error()<<"Unable to save the output from a tool"<<endmsg;
+  warning()<<"TestSavingAlgorithm::execute 2"<<endmsg;
     return StatusCode::FAILURE;
   }
    return StatusCode::SUCCESS;

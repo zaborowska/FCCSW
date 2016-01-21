@@ -4,7 +4,7 @@ DECLARE_COMPONENT(TestReadingAlgorithm)
 
 TestReadingAlgorithm::TestReadingAlgorithm(const std::string& name, ISvcLocator* svcLoc):
 GaudiAlgorithm(name, svcLoc) {
-  declareInput("particles",m_particles);
+  declareInput("testInput",m_particles);
 }
 
 StatusCode TestReadingAlgorithm::initialize() {

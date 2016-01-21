@@ -4,11 +4,11 @@ from Configurables import ApplicationMgr, TestSavingAlgorithm, TestReadingAlgori
 albersevent = FCCDataSvc("EventDataSvc")
 
 tool = ToolWithOutput("ToolWithOutput")
-tool.DataOutputs.particles.Path = "particles"
+tool.DataOutputs.testOutput.Path = "particles"
 save = TestSavingAlgorithm("Save", ToolWithOutput=tool)
 
 read = TestReadingAlgorithm("Read")
-read.DataInputs.particles.Path = "particles"
+read.DataInputs.testInput.Path = "particles"
 
 from Configurables import AlbersWrite, AlbersOutput
 out = AlbersOutput("out",
@@ -18,6 +18,6 @@ out.outputCommands = ["keep *"]
 ApplicationMgr( TopAlg = [save, read, out],
                 EvtSel = 'NONE',
                 EvtMax   = 1,
-                ExtSvc = [],
+                ExtSvc = [albersevent],
                 OutputLevel=DEBUG
  )

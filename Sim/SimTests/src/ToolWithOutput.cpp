@@ -6,22 +6,18 @@ ToolWithOutput::ToolWithOutput(const std::string& aType, const std::string& aNam
 GaudiTool(aType, aName, aParent) {
   declareInterface<IToolWithOutput>(this);
   declareOutput("testOutput",m_particles);
+  declareProperty( "DataInputs", inputDataObjects());
+  declareProperty( "DataOutputs", outputDataObjects());
 }
 
 ToolWithOutput::~ToolWithOutput() {}
 
 StatusCode ToolWithOutput::initialize() {
-  if(GaudiTool::initialize().isFailure()) {
-    return StatusCode::FAILURE;
-  }
-  return StatusCode::SUCCESS;
+  return GaudiTool::initialize();
 }
 
 StatusCode ToolWithOutput::finalize() {
-  if(GaudiTool::finalize().isFailure()) {
-    return StatusCode::FAILURE;
-  }
-  return StatusCode::SUCCESS;
+  return GaudiTool::finalize();
 }
 StatusCode ToolWithOutput::saveOutput() {
   ParticleCollection* particles = new ParticleCollection();

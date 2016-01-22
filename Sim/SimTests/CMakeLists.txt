@@ -19,13 +19,13 @@ gaudi_add_module(SimTests
 
 include(CTest)
 gaudi_add_test(AlgToolWithTool
-               FRAMEWORK options/algToolWithToolTest.py)
+               FRAMEWORK options/algToolWithTool.py)
 
-gaudi_add_test(ServiceToolWithTool
-               FRAMEWORK options/svcToolWithToolTest.py)
+gaudi_add_test(ServiceToolWithSameTool
+               FRAMEWORK options/svcToolWithTool.py)
 
 gaudi_add_test(ServiceToolWithOtherTool
-               FRAMEWORK options/svcToolWithOtherToolTest.py)
+               FRAMEWORK options/svcToolWithOtherTool.py)
 
-gaudi_add_test(TestToolWithOutput
-               FRAMEWORK options/toolWithOutputTest.py)
+gaudi_add_test(ToolWithOutput
+               FRAMEWORK options/toolWithOutput.py)

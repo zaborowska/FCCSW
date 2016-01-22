@@ -2,7 +2,8 @@
 #define SIM_OTHERTOOL_H
 
 // GAUDI
-#include "GaudiAlg/GaudiTool.h"
+/* #include "GaudiAlg/GaudiTool.h" */
+#include "GaudiKernel/AlgTool.h"
 
 // FCCSW
 #include "FWCore/DataHandle.h"
@@ -11,7 +12,7 @@
 // albers
 #include "datamodel/ParticleCollection.h"
 
-class OtherTool: public GaudiTool, public IOtherTool {
+class OtherTool: public AlgTool, public IOtherTool {
 public:
   /// Constructor.
   OtherTool(const std::string& aType , const std::string& aName,

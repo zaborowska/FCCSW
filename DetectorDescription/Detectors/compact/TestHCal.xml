@@ -18,22 +18,22 @@
   </info>
 
   <define>
-    <constant name="world_size" value="30*m"/>
+    <constant name="world_size" value="3*m"/>
     <constant name="world_x" value="world_size"/>
     <constant name="world_y" value="world_size"/>
     <constant name="world_z" value="world_size"/>
     <!-- NOTE: All lengths (anything but radii) given below are interpreted as half-lenghts! -->
     <!-- dimensions in R / rho of actual detector modules (face-plate is placed inside)-->
-    <constant name="BarHCal_rmin" value="1010*mm"/>
-    <constant name="BarHCal_rmax" value="10010*mm"/>
+    <constant name="BarHCal_rmin" value="101*mm"/>
+    <constant name="BarHCal_rmax" value="1001*mm"/>
     <!-- length in z -->
     <!-- Note that this is just a guideline to the factory method: It will actually do a HCal of length
       static_cast<int>(BarHCal_dz / Module_thickness) +
     -->
-    <constant name="BarHCal_dz" value="6000*mm"/>
+    <constant name="BarHCal_dz" value="600*mm"/>
     <!-- tile dimensions -->
     <constant name="BarHCal_n_phi_modules" value="120"/>
-    <constant name="BarHCal_module_drho" value="100*mm"/>
+    <constant name="BarHCal_module_drho" value="10*mm"/>
     <constant name="BarHCAL_module_spacing_phi" value="0.5*mm"/>
     <!-- component dimensions -->
     <constant name="BarHCal_master_plate_thickness" value="5*mm" />

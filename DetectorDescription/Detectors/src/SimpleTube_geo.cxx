@@ -20,6 +20,9 @@ static DD4hep::Geometry::Ref_t createSimpleTube(DD4hep::Geometry::LCDD& aLcdd,
   DD4hep::Geometry::PlacedVolume placedTube = mother_vol.placeVolume(tube_vol);
   placedTube.addPhysVolID(det_name,tube.id());
   tube.setPlacement(placedTube);
+  if(det_name.find("ECal") != std::string::npos) {
+    aSensDet.setType("Geant4Calorimeter");
+  }
 
   return tube;
 }

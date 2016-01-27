@@ -13,20 +13,24 @@ hepmc_converter.DataOutputs.genparticles.Path="allGenParticles"
 hepmc_converter.DataOutputs.genvertices.Path="allGenVertices"
 
 from Configurables import GeoSvc
-geoservice = GeoSvc("GeoSvc", detector='file:DetectorDescription/Detectors/compact/ParametricSimEnvelopes.xml',
+geoservice = GeoSvc("GeoSvc", detector='file:DetectorDescription/Detectors/compact/TestHCal.xml',
                     OutputLevel = DEBUG)
 
 from Configurables import G4SimSvc, G4FastSimPhysicsList, G4FastSimActions, G4ParticleSmearSimple
 smeartool = G4ParticleSmearSimple("Smear", sigma = 0.15)
 actionstool = G4FastSimActions("Actions", smearing=smeartool)
 physicslisttool = G4FastSimPhysicsList("Physics", fullphysics="G4FtfpBert")
-geantservice = G4SimSvc("G4SimSvc", detector='G4DD4hepDetector', physicslist=physicslisttool, actions=actionstool)
+geantservice = G4SimSvc("G4SimSvc", detector='G4DD4hepDetector', physicslist="G4FtfpBert", actions=actionstool)
 
-from Configurables import G4SimAlg, G4SaveSmearedParticles
+from Configurables import G4SimAlg, G4SaveSmearedParticles, G4SaveCalHits
 saveparticlestool = G4SaveSmearedParticles("G4SaveSmearedParticles")
 saveparticlestool.DataOutputs.particles.Path = "smearedParticles"
 saveparticlestool.DataOutputs.particlesMCparticles.Path = "particleMCparticleAssociation"
-geantsim = G4SimAlg("G4SimAlg", outputs = ["G4SaveSmearedParticles/G4SaveSmearedParticles"])
+savehcaltool = G4SaveCalHits("G4SaveHCalHits", caloType = "HCal")
+savehcaltool.DataOutputs.caloClusters.Path = "caloClusters"
+savehcaltool.DataOutputs.caloHits.Path = "caloHits"
+geantsim = G4SimAlg("G4SimAlg", outputs = ["G4SaveSmearedParticles/G4SaveSmearedParticles",
+                                           "G4SaveCalHits/G4SaveHCalHits"])
 geantsim.DataInputs.genParticles.Path="allGenParticles"
 
 

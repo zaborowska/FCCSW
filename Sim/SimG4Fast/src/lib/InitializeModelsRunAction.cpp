@@ -25,7 +25,7 @@ InitializeModelsRunAction::InitializeModelsRunAction(const std::string& aSmearin
   m_smearToolName(aSmearingToolName),
   m_modelTracker(aModelTracker),
   m_modelECal(aModelECal),
-  m_modelHCal(aModelHCal){}
+  m_modelHCal(aModelHCal) {}
 
 InitializeModelsRunAction::~InitializeModelsRunAction() {}
 
@@ -43,6 +43,7 @@ void InitializeModelsRunAction::BeginOfRunAction(const G4Run* /*aRun*/) {
     }
     if(m_modelECal) {
       if(world->GetDaughter(iter_region)->GetName().find("ECal") != std::string::npos
+         || world->GetDaughter(iter_region)->GetName().find("HCal") != std::string::npos
          || world->GetDaughter(iter_region)->GetName().find("EMCal") != std::string::npos) {
         /// all G4Region objects are deleted by the G4RegionStore
         m_g4regions.emplace_back(new G4Region(world->GetDaughter(iter_region)->GetLogicalVolume()->GetName()+"_fastsim"));
@@ -66,6 +67,6 @@ void InitializeModelsRunAction::BeginOfRunAction(const G4Run* /*aRun*/) {
       }
     }
   }
-  return;
+return;
 }
 }

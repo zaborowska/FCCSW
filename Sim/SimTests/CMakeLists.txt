@@ -29,3 +29,9 @@ gaudi_add_test(ServiceToolWithOtherTool
 
 gaudi_add_test(ToolWithOutput
                FRAMEWORK options/toolWithOutput.py)
+
+gaudi_add_test(AlgWithSubAlg
+               FRAMEWORK options/algWithSubAlg.py)
+
+gaudi_add_test(AlgWithMultipleToolInstances
+               FRAMEWORK options/algWithMultipleToolInstances.py)

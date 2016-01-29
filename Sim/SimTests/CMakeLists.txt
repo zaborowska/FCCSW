@@ -38,3 +38,9 @@ gaudi_add_test(AlgToolWithManyProperties
 
 gaudi_add_test(AlgorithmWithManyProperties
                FRAMEWORK options/algProperties.py)
+
+gaudi_add_test(AlgWithSubAlg
+               FRAMEWORK options/algWithSubAlg.py)
+
+gaudi_add_test(AlgWithMultipleToolInstances
+               FRAMEWORK options/algWithMultipleToolInstances.py)

@@ -4,25 +4,25 @@ DECLARE_COMPONENT(TestMultipleToolInstancesAlgorithm)
 
 TestMultipleToolInstancesAlgorithm::TestMultipleToolInstancesAlgorithm(const std::string& name, ISvcLocator* svcLoc):
 GaudiAlgorithm(name, svcLoc) {
-  declareProperty("ToolName1", m_toolname1="ToolWithOutput", "");
-  declareProperty("ToolName2", m_toolname2="ToolWithOutput", "");
+  declareProperty("tool1",m_tool1);
+  declarePrivateTool(m_tool1, "ToolWithMember/tool1");
+  declareProperty("tool2", m_tool2);
+  declarePrivateTool(m_tool2, "ToolWithMember/tool2");
 }
 
 StatusCode TestMultipleToolInstancesAlgorithm::initialize() {
 if(GaudiAlgorithm::initialize().isFailure()) {
     return StatusCode::FAILURE;
   }
-    m_tool1 =  tool< IToolWithOutput >( m_toolname1, this  ) ;
-    m_tool2 =  tool< IToolWithOutput  >( m_toolname2, this  ) ;
 
-  //m_tool1->retrieve();
   return StatusCode::SUCCESS;
 }
 
 StatusCode TestMultipleToolInstancesAlgorithm::execute() {
   m_tool1->setFilename("File1");
   m_tool2->setFilename("File2");
-  m_tool1->printFilename(); //should print "File1", does print "File2"
+  m_tool1->printFilename();
+  m_tool2->printFilename();
   return StatusCode::SUCCESS;
 }
 

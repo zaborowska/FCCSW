@@ -7,7 +7,7 @@
 
 // FCCSW
 #include "FWCore/DataHandle.h"
-#include "IToolWithOutput.h"
+#include "IToolWithMember.h"
 
 // albers
 #include "datamodel/ParticleCollection.h"
@@ -27,8 +27,8 @@ private:
   /// Handle for the particles to be written
   //ToolHandle<IToolWithOutput> m_tool1;
   //ToolHandle<IToolWithOutput> m_tool2;
-  IToolWithOutput* m_tool1;
-  IToolWithOutput* m_tool2;
+  ToolHandle<IToolWithMember> m_tool1;
+  ToolHandle<IToolWithMember> m_tool2;
   std::string m_toolname2 = "tool2";
   std::string m_toolname1 = "tool1";
 };

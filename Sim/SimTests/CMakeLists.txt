@@ -29,3 +29,12 @@ gaudi_add_test(ServiceToolWithOtherTool
 
 gaudi_add_test(ToolWithOutput
                FRAMEWORK options/toolWithOutput.py)
+
+gaudi_add_test(AlgToolWithVector
+               FRAMEWORK options/algToolWithVector.py)
+
+gaudi_add_test(AlgToolWithManyProperties
+               FRAMEWORK options/toolProperties.py)
+
+gaudi_add_test(AlgorithmWithManyProperties
+               FRAMEWORK options/algProperties.py)

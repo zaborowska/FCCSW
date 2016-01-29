@@ -1,20 +1,19 @@
 ################################################################################
-# Package: SimG4Example
+# Package: GaudiTests
 ################################################################################
-gaudi_subdir(SimTests v1r0)
+gaudi_subdir(GaudiTests v1r0)
 
 #this declaration will not be needed in the future
 gaudi_depends_on_subdirs(GaudiAlg GaudiKernel FWCore DataObjects)
 
 find_package(ROOT)
-find_package(Geant4)
 find_package(ALBERS)
 find_package(FCCEDM)
 
-gaudi_add_module(SimTests
+gaudi_add_module(GaudiTests
 		 src/*.cpp
-		 INCLUDE_DIRS ROOT FWCore GaudiKernel Geant4 DataObjects FCCEDM ALBERS
-       LINK_LIBRARIES GaudiAlgLib FWCore DataObjects ROOT GaudiKernel Geant4 FCCEDM ALBERS)
+		 INCLUDE_DIRS ROOT FWCore GaudiKernel DataObjects FCCEDM ALBERS
+       LINK_LIBRARIES GaudiAlgLib FWCore DataObjects ROOT GaudiKernel FCCEDM ALBERS)
 
 
 include(CTest)

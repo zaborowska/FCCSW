@@ -14,13 +14,11 @@ public:
   TestToolService(const std::string& aName, ISvcLocator* aSL);
   /// Standard destructor
   virtual ~TestToolService();
-  /**  Initialize the Geant simulation service.
-   *   Tools set in the configuration file need to specify the detector construction,
-   *   physics list and user action initialization to initialize G4RunManager.
+  /**  Initialize
    *   @return status code
    */
   virtual StatusCode initialize() final;
-  /**  Finalize the Geant simulation service.
+  /**  Finalize
    *   @return status code
    */
   virtual StatusCode finalize() final;

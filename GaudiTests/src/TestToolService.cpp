@@ -1,10 +1,7 @@
 #include "TestToolService.h"
+
 // Gaudi
 #include "GaudiKernel/IToolSvc.h"
-
-// Geant
-#include "G4Event.hh"
-#include "G4VModularPhysicsList.hh"
 
 DECLARE_SERVICE_FACTORY(TestToolService)
 

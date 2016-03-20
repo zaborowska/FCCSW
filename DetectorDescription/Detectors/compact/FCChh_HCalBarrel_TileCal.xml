@@ -43,7 +43,7 @@
     <constant name="BarHCal_scintillator_thickness" value="3*mm" />
     <!-- face and end-plate dimensions -->
     <constant name="BarHCal_end_plate_thickness" value="5*mm" />
-    <constant name="BarHCal_face_plate_thickness" value="10*mm" />    
+    <constant name="BarHCal_face_plate_thickness" value="10*mm" />
   </define>
 
   <display>

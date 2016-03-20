@@ -25,8 +25,12 @@ class InitializeModelsRunAction : public G4UserRunAction {
 public:
   /** Constructor.
    *  @param aSmearToolName Name of the implementation of IG4ParticleSmearTool to be passed to models.
+   *  @param aModelTracker Flag indicating if attach fast sim models for tracker.
+   *  @param aModelECal Flag indicating if attach fast sim models for ECal.
+   *  @param aModelHCal Flag indicating if attach fast sim models for HCal.
    */
-  explicit InitializeModelsRunAction(const std::string& aSmearingToolName);
+   explicit InitializeModelsRunAction(const std::string& aSmearingToolName,
+                              bool aModelTracker=true, bool aModelECal=true, bool aModelHCal=true );
   virtual ~InitializeModelsRunAction();
   /* Defines the actions at the end of processing the track.
    * It scans the world volume in search of the occurance of defined strings and attaches
@@ -48,6 +52,12 @@ private:
   std::vector<std::unique_ptr<G4VFastSimulationModel>> m_models;
   /// Name of the used implementation of the IG4ParticleSmearTool
   std::string m_smearToolName;
+  /// Flag indicating if models should be attached for the tracker
+  bool m_modelTracker;
+  /// Flag indicating if models should be attached for the EM calorimeter
+  bool m_modelECal;
+  /// Flag indicating if models should be attached for the hadron calorimeter
+  bool m_modelHCal;
 };
 }
 

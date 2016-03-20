@@ -57,12 +57,12 @@ StatusCode G4SaveCalHits::saveOutput(const G4Event& aEvent) {
         info() << "\t" << n_hit<< " hits are stored in a HCal collection #"<<iter_coll<<": "<<collect->GetName()<<endmsg;
         for(size_t iter_hit=0; iter_hit<n_hit; iter_hit++ ) {
           hit = dynamic_cast<DD4hep::Simulation::Geant4CalorimeterHit*>(collect->GetHit(iter_hit));
-          debug() << hit->cellID << " ";
-          debug() << hit->energyDeposit << " ";
+          // debug() << hit->cellID << " ";
+          // debug() << hit->energyDeposit << " ";
 
-          debug() << hit->position.x() << " ";
-          debug() << hit->position.y() << " ";
-          debug() << hit->position.z() << endmsg;
+          // debug() << hit->position.x() << " ";
+          // debug() << hit->position.y() << " ";
+          // debug() << hit->position.z() << endmsg;
 
           fcc::CaloHit edmHit = edmHits->create();
           fcc::CaloCluster edmCluster = edmClusters->create();

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+
+    <includes>
+        <gdmlFile  ref="elements.xml"/>
+        <gdmlFile  ref="materials.xml"/>
+    </includes>
+
+    <info name="ParametricSimEnvelopes"
+        title="ParametricSimEnvelopes"
+        author="Anna"
+        url="no"
+        status="development"
+        version="$Id:??$">
+        <comment>Envelopes for Parametric Sim</comment>
+    </info>
+
+    <define>
+        <constant name="world_size" value="10*m"/>
+        <constant name="world_x" value="world_size"/>
+        <constant name="world_y" value="world_size"/>
+        <constant name="world_z" value="world_size"/>
+
+        <!--Dimensions of BeamTube-->
+        <constant name="Beam_rmin" value="0.*mm"/>
+        <constant name="Beam_rmax" value="20.*mm"/>
+        <constant name="Beam_length" value="4000.*mm"/>
+        <!--Dimensions of Tracker-->
+        <constant name="Tracker_rmin" value="21.*mm"/>
+        <constant name="Tracker_rmax" value="240.*mm"/>
+        <constant name="Tracker_length" value="800.*mm"/>
+        <!--Dimensions of EMCal-->
+        <constant name="EMCal_rmin" value="250.*mm"/>
+        <constant name="EMCal_rmax" value="350.*mm"/>
+        <constant name="EMCal_length" value="1150.*mm"/>
+        <!--Dimensions of HCal-->
+        <constant name="HCal_rmin" value="360.*mm"/>
+        <constant name="HCal_rmax" value="600.*mm"/>
+        <constant name="HCal_length" value="1150.*mm"/>
+
+    </define>
+    <display>
+      <vis name="violet" r="0.4" g="0." b="0.4" alpha="1" showDaugthers="true" visible="true" drawingStyle="solid"/>
+      <vis name="red" r="0.6" g="0." b="0." alpha="1" showDaugthers="true" visible="true" drawingStyle="solid"/>
+      <vis name="orange" r="0.6" g="0.4" b="0." alpha="1" showDaugthers="true" visible="true" drawingStyle="solid"/>
+      <vis name="lightblue" r="0." g="0." b="0.5" alpha="1" showDaugthers="true" visible="true" drawingStyle="solid"/>
+      <vis name="lightred" r="0.5" g="0." b="0." alpha="1" showDaugthers="true" visible="true" drawingStyle="solid"/>
+      <vis name="lightgreen" r="0." g="0.5" b="0." alpha="1" showDaugthers="true" visible="true" drawingStyle="solid"/>
+    </display>
+
+    <detectors>
+        <!--BeamTube-->
+        <detector id="0" name="BeamTube" type="BeamTube">
+            <status id="0"/>
+            <dimensions rmin="Beam_rmin" rmax="Beam_rmax" z="Beam_length" vis="violet"/>
+        </detector>
+        <!--Tracker-->
+        <detector id="1" name="TrackerEnvelope" type="SimpleTube">
+            <material name="Air"/>
+            <status id="1"/>
+            <dimensions rmin="Tracker_rmin" rmax="Tracker_rmax" z="Tracker_length" vis="lightred"/>
+        </detector>
+        <!--EMCal-->
+        <detector id="2" name="ECalEnvelope" type="SimpleTube">
+            <status id="1"/>
+            <dimensions rmin="EMCal_rmin" rmax="EMCal_rmax" z="EMCal_length" vis="lightblue"/>
+            <material name="AluminumOxide"/>
+        </detector>
+        <!--HCal-->
+        <detector id="3" name="HCalEnvelope" type="SimpleTube">
+            <material name="Steel235"/>
+            <status id="1"/>
+            <dimensions rmin="HCal_rmin" rmax="HCal_rmax" z="HCal_length" vis="lightgreen"/>
+        </detector>
+    </detectors>
+</lccdd>

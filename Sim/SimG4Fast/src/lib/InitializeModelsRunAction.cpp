@@ -67,6 +67,6 @@ void InitializeModelsRunAction::BeginOfRunAction(const G4Run* /*aRun*/) {
       }
     }
   }
-return;
+  return;
 }
 }

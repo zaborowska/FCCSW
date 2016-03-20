@@ -3,7 +3,7 @@
 // Geant4
 #include "G4Event.hh"
 
-// albers
+// datamodel
 #include "datamodel/CaloClusterCollection.h"
 #include "datamodel/CaloHitCollection.h"
 
@@ -13,7 +13,7 @@
 DECLARE_TOOL_FACTORY(G4SaveCalHits)
 
 G4SaveCalHits::G4SaveCalHits(const std::string& aType, const std::string& aName, const IInterface* aParent) :
-GaudiTool(aType, aName, aParent) {
+  GaudiTool(aType, aName, aParent) {
   declareInterface<IG4SaveOutputTool>(this);
   declareProperty("caloType", m_calType);
   declareOutput("caloClusters", m_caloClusters,"hits/caloClusters");
@@ -47,15 +47,15 @@ StatusCode G4SaveCalHits::saveOutput(const G4Event& aEvent) {
   G4VHitsCollection* collect;
   DD4hep::Simulation::Geant4CalorimeterHit* hit;
   if(collections != nullptr) {
-    CaloClusterCollection* edmClusters = new CaloClusterCollection();
-    CaloHitCollection* edmHits = new CaloHitCollection();
+    fcc::CaloClusterCollection* edmClusters = new fcc::CaloClusterCollection();
+    fcc::CaloHitCollection* edmHits = new fcc::CaloHitCollection();
     // CaloClusterHitsAssociationCollection* edmAssociations = new CaloClusterHitsAssociationCollection();
     for (int iter_coll=0; iter_coll<collections->GetNumberOfCollections(); iter_coll++) {
       collect = collections->GetHC(iter_coll);
       if (collect->GetName().find(m_calType) != std::string::npos) {
-        unsigned int n_hit = collect->GetSize();
+        size_t n_hit = collect->GetSize();
         info() << "\t" << n_hit<< " hits are stored in a HCal collection #"<<iter_coll<<": "<<collect->GetName()<<endmsg;
-        for(auto iter_hit=0; iter_hit<n_hit; iter_hit++ ) {
+        for(size_t iter_hit=0; iter_hit<n_hit; iter_hit++ ) {
           hit = dynamic_cast<DD4hep::Simulation::Geant4CalorimeterHit*>(collect->GetHit(iter_hit));
           // debug() << hit->cellID << " ";
           // debug() << hit->energyDeposit << " ";
@@ -64,10 +64,10 @@ StatusCode G4SaveCalHits::saveOutput(const G4Event& aEvent) {
           // debug() << hit->position.y() << " ";
           // debug() << hit->position.z() << endmsg;
 
-          CaloHit edmHit = edmHits->create();
-          CaloCluster edmCluster = edmClusters->create();
-          BareHit& edmHitCore = edmHit.Core();
-          BareCluster& edmClusterCore = edmCluster.Core();
+          fcc::CaloHit edmHit = edmHits->create();
+          fcc::CaloCluster edmCluster = edmClusters->create();
+          fcc::BareHit& edmHitCore = edmHit.Core();
+          fcc::BareCluster& edmClusterCore = edmCluster.Core();
           edmHitCore.Cellid = hit->cellID;
           edmHitCore.Energy = hit->energyDeposit;
 

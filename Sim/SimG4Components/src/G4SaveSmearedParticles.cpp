@@ -7,7 +7,7 @@
 // Geant4
 #include "G4Event.hh"
 
-// albers
+// datamodel
 #include "datamodel/ParticleCollection.h"
 #include "datamodel/ParticleMCParticleAssociationCollection.h"
 
@@ -17,7 +17,7 @@
 DECLARE_TOOL_FACTORY(G4SaveSmearedParticles)
 
 G4SaveSmearedParticles::G4SaveSmearedParticles(const std::string& aType, const std::string& aName, const IInterface* aParent) :
-AlgTool(aType, aName, aParent) {
+  AlgTool(aType, aName, aParent) {
   declareInterface<IG4SaveOutputTool>(this);
   declareOutput("particles", m_particles,"particles/smearedParticles");
   declareOutput("particlesMCparticles", m_particlesMCparticles,"particles/smearedParticles");
@@ -37,18 +37,18 @@ StatusCode G4SaveSmearedParticles::finalize() {
 }
 
 StatusCode G4SaveSmearedParticles::saveOutput(const G4Event& aEvent) {
-  ParticleCollection* particles = new ParticleCollection();
-  ParticleMCParticleAssociationCollection* associations = new ParticleMCParticleAssociationCollection();
+  auto particles = m_particles.createAndPut();
+  auto associations = m_particlesMCparticles.createAndPut();
   for(int i=0;i<aEvent.GetNumberOfPrimaryVertex();i++) {
     for(int j=0;j<aEvent.GetPrimaryVertex(i)->GetNumberOfParticle();j++) {
       const G4PrimaryParticle* g4particle = aEvent.GetPrimaryVertex(i)->GetPrimary(j);
       sim::ParticleInformation* info = dynamic_cast<sim::ParticleInformation*>(g4particle->GetUserInformation());
-      const MCParticle& MCparticle = info->mcParticle();
-      Particle particle = particles->create();
-      ParticleMCParticleAssociation association = associations->create();
+      const fcc::MCParticle& MCparticle = info->mcParticle();
+      fcc::Particle particle = particles->create();
+      fcc::ParticleMCParticleAssociation association = associations->create();
       association.Rec(particle);
       association.Sim(MCparticle);
-      BareParticle& core = particle.Core();
+      fcc::BareParticle& core = particle.Core();
       core.Type = g4particle->GetPDGcode();
       core.Status = 1; // how it is defined ???? as in HepMC ?
       core.Charge = g4particle->GetCharge();
@@ -61,7 +61,5 @@ StatusCode G4SaveSmearedParticles::saveOutput(const G4Event& aEvent) {
       core.Vertex.Z = info->vertexPosition().z()*sim::g42edm::length;
     }
   }
-  m_particles.put(particles);
-  m_particlesMCparticles.put(associations);
   return StatusCode::SUCCESS;
 }

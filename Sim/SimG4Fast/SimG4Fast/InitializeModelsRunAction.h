@@ -29,7 +29,7 @@ public:
    *  @param aModelECal Flag indicating if attach fast sim models for ECal.
    *  @param aModelHCal Flag indicating if attach fast sim models for HCal.
    */
-    InitializeModelsRunAction(const std::string& aSmearingToolName,
+   explicit InitializeModelsRunAction(const std::string& aSmearingToolName,
                               bool aModelTracker=true, bool aModelECal=true, bool aModelHCal=true );
   virtual ~InitializeModelsRunAction();
   /* Defines the actions at the end of processing the track.

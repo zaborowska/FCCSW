@@ -13,7 +13,7 @@ hepmc_converter.DataOutputs.genparticles.Path="allGenParticles"
 hepmc_converter.DataOutputs.genvertices.Path="allGenVertices"
 
 from Configurables import GeoSvc
-geoservice = GeoSvc("GeoSvc", detector='file:DetectorDescription/Detectors/compact/TestTracker.xml',
+geoservice = GeoSvc("GeoSvc", detectors=['file:DetectorDescription/Detectors/compact/TestTracker.xml'],
                     OutputLevel = DEBUG)
 
 from Configurables import G4SimSvc
@@ -28,7 +28,7 @@ geantsim = G4SimAlg("G4SimAlg",
                         outputs= ["G4SaveTrackerHits/G4SaveTrackerHits" ])
 geantsim.DataInputs.genParticles.Path="allGenParticles"
 
-from Configurables import PodioWrite, PodioOutput
+from Configurables import PodioOutput
 out = PodioOutput("out",
                    OutputLevel=DEBUG)
 out.outputCommands = ["keep *"]

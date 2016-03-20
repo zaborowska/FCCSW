@@ -8,9 +8,11 @@
 #include "FWCore/DataHandle.h"
 #include "SimG4Interface/IG4SaveOutputTool.h"
 
-// albers
+// datamodel
+namespace fcc {
 class ParticleCollection;
 class ParticleMCParticleAssociationCollection;
+}
 
 /** @class G4SaveSmearedParticles SimG4Components/src/G4SaveSmearedParticles.h G4SaveSmearedParticles.h
  *
@@ -21,7 +23,7 @@ class ParticleMCParticleAssociationCollection;
 
 class G4SaveSmearedParticles: public AlgTool, virtual public IG4SaveOutputTool {
 public:
-  G4SaveSmearedParticles(const std::string& aType , const std::string& aName,
+  explicit G4SaveSmearedParticles(const std::string& aType , const std::string& aName,
                   const IInterface* aParent);
   virtual ~G4SaveSmearedParticles();
   /**  Initialize.
@@ -40,9 +42,9 @@ public:
   virtual StatusCode saveOutput(const G4Event& aEvent) final;
 private:
   /// Handle for the particles to be written
-  DataHandle<ParticleCollection> m_particles;
+  DataHandle<fcc::ParticleCollection> m_particles;
   /// Handle for the associations between particles and MC particles to be written
-  DataHandle<ParticleMCParticleAssociationCollection> m_particlesMCparticles;
+  DataHandle<fcc::ParticleMCParticleAssociationCollection> m_particlesMCparticles;
 
 };
 

@@ -7,7 +7,7 @@ One particular exception is that we extended the 80 characters per line requirem
 ## Goal
 Give guidelines on naming conventions and how to structure code.
 
-General tips on how to write good code can be found in ... (add link)
+General tips on how to write good code can be found [here](http://fccsw.web.cern.ch/fccsw/FCCSW/md_doc__general_cpp_guidelines.html).
 
 ## Contents
 * [Naming Conventions](#naming-conventions)
@@ -38,6 +38,13 @@ General tips on how to write good code can be found in ... (add link)
    * [Curly Braces](#curly-braces)
    * [Comments](#comments)
 
+## Automatic Checking
+Some basic formatting checks can be done with `checkformat.sh` which calls the SAS format checker based on clang (and sets up the required LLVM suite temporarily). It will display a diff in case of mismatches between the format defined in a FCCSW format file that is automatically created for you (`.clang-format`). Note that this does not check for naming conventions at the moment but only for correct indentation, trailing whitespaces, line length, etc. The script can be called with a list of files separated by whitespace:
+
+~~~
+  ./checkformat.sh Examples/src/CreateSampleJet.cpp Examples/src/CreateSampleJet.h
+~~~
+
 ## Naming Conventions
 ### Variable Names
 Names should be as descriptive as possible.
@@ -45,12 +52,12 @@ Names should be as descriptive as possible.
 Do not worry about space; Worry about how understandable the name is. Avoid unclear abbreviations.
 
 **Examples**:
-```C++
+~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
 int trackParameter;  // no abbrevations
 int numErrors;       // num is unambigous
 // Do not:
 int n;               // meaningless
-```
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 #### Names of Member Variables
 Member variables should be prefixed with `m_` otherwise the same rules as above apply.
@@ -81,7 +88,7 @@ Additionally, getter functions do *not* start with get. Instead, the related var
 Setter functions start with `set` and continue with the related variable name (omitting the `m_`).
 
 **Example**
-```C++
+~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
 class Foo {
 public:
   // ctor + dtor should be here
@@ -90,7 +97,7 @@ public:
 private:
   int m_bar;
 };
-```
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 ### Namespace names
 Namespaces are all lower case.
@@ -99,11 +106,11 @@ Namespaces are all lower case.
 Enumerators should follow the same rules as constants (start with k).
 
 **Example**
-```C++
+~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
 enum class ErrorCode {
   kSuccess, kFileNotFound, kError
 };
-```
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 ***
 
@@ -152,12 +159,15 @@ The last child package should have the folder structure:
   - options (contains all configuration files)
   - dict (contains files needed to build the lcg library)
   - doc (contains readme files documenting this specific package)
-  - test (contains files used for unit-testing)
+  - tests (contains files used for unit-testing)
+    - options (contains configuration files only used for tests)
+    - scripts (contains python scripts used for testing)
+  - data (contains input text files needed for this package)
 
 ### File Names
 Header files end with `.h`, source files end with `.cpp`, standalone executable implementations end with `.cxx`.
 
-When an additional "implementation header file" is needed (e.g. in order to not clutter the header file of a templated class) an additional file `.impl` can be included in the header file.
+When an additional "implementation header file" is needed (e.g. in order to not clutter the header file of a templated class) an additional file `.incl` can be included in the header file.
 
 ***
 
@@ -170,12 +180,12 @@ A guard should follow the naming convention of `PACKAGE_FILE_H` where `PACKAGE` 
 **Example**
 
 In file `BarPackage/BarPackage/Foo.h`:
-```C++
+~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
 #ifndef BARPACKAGE_FOO_H
 #define BARPACKAGE_FOO_H
 // header body
 #endif /* BARPACKAGE_FOO_H */
-```
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 ### Include Ordering
 Standard order for readability: Related header, C library, C++ library, other libraries, project headers, e.g. for class `Foo` in `Foo.cpp`:
@@ -190,7 +200,7 @@ Standard order for readability: Related header, C library, C++ library, other li
 Prefer forward declaration over including the corresponding header-files.
 
 **Examples**
-```C++
+~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
 // Forward declaration of class in the same namespace:
 class Foo;
 // Forward declaration of a class in another namespace:
@@ -203,7 +213,7 @@ namespace bar {
 class FooBar;
 }
 }
-```
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 ### One Class per Header
 Each header file should only contain the declaration of one class.
@@ -216,10 +226,10 @@ Indentations should be done with spaces, 2 spaces per indentation step.
 
 - Indent by scope with the exception of namespaces and access modifiers (`public`, `private` and `protected`).
 - Indent in case of line continuation.
-- Indent for member initialiser lists
+- Indent twice for member initialiser lists
 
 **Example**:
-```C++
+~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
 namespace foo {
 class Foo {
 public:
@@ -230,45 +240,45 @@ private:
   int m_foo;
 };
 }
-```
+~~~~~~~~~~~~~~~~~~~~~~~~
 Member initialiser list:
-```C++
+~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
 Foo::Foo() :
-  m_bar(1),
-  m_foo(1) {
+    m_bar(1),
+    m_foo(1) {
   // ctor body
 }
-```
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 ### Curly braces
 Opening curly braces should be placed in the same line; Closing curly braces should be in a new line.
 
 **Examples**:
-```C++
+~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
 class Foo() {
   // my class definition
 };
-```
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-```C++
+~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
 if (condition) {
   // doSomething
 }
-```
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-```C++
+~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
 if (condition) {
   // doSomething
 } else {
   // doSomethingElse
 }
-```
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-```C++
+~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
 for (int a = 10; a < 20; ++a) {
   // doSomethingRepeatedly
 }
-```
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 ### Comments
 Comments should be abundant and non-trivial.
@@ -276,17 +286,18 @@ Comments should be abundant and non-trivial.
 Both `/* */` and `//` style comments are OK. Inline comments should be short, prefer to comment before the relevant code block.
 
 Keep in mind doxygen pages are created and read through the [how-to for doxygen comments](http://www.stack.nl/~dimitri/doxygen/manual/docblocks.html):
-- Use `@` for [commands](http://www.stack.nl/%7Edimitri/doxygen/manual/commands.html#cmd_intro). 
+- Use `@` for [commands](http://www.stack.nl/%7Edimitri/doxygen/manual/commands.html#cmd_intro).
 - Member functions documentation depends on the detail level:
   - Short descriptions on the line above the function definition with `///` starting the comment.
   - Complex descriptions using [return cmd](http://www.stack.nl/%7Edimitri/doxygen/manual/commands.html#cmdreturn) and [params cmd](http://www.stack.nl/%7Edimitri/doxygen/manual/commands.html#cmdparam) should follow the same style as class descriptions (see example).
 - Member variable documentation depends on the length of the comment:
-  - A short description of a member may be put on the same line starting with `///<`. 
-  - Longer descriptions are put above the member definition starting with `///`. 
+  - A short description of a member may be put on the same line starting with `///<`.
+  - Longer descriptions are put above the member definition starting with `///`.
 - A class description is put above the namespace region with author information and a description of the class. A date may optionally be added.
 
 **Example**
-```C++
+*NOTE* this example is not rendered correctly in Doxygen, have a look at [github](https://github.com/jlingema/FCCSW/blob/master/doc/CppCodingStyleGuidelines.md#comments).
+~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
 #include "OtherClass.h"
 
 /** @class foo::MyClass MyPackage/MyPackage/MyClass.h MyClass.h
@@ -301,26 +312,26 @@ namespace foo {
 class MyClass : public OtherClass {
 public:
   /** @enum foo::MyEnum
-   *  Description of the enum  
+   *  Description of the enum
    */
   enum class MyEnum {
     kVal1, kVal2
   };
-  
+
   /// Description about ctor
   MyClass(int a, int b);
-  
+
   /** doSomething: does something
     * @param[in] f is used to do...
     * @returns an integer
     */
   int doSomething(const float& f);
-  
+
 private:
   int m_a;  ///< short member a documentation
   /// a rather long description for member b that needs a whole line
   int m_b
 };
 }
-```
+~~~~~~~~~~~~~~~~~~~~~~~~
 

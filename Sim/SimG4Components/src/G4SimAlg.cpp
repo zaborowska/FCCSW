@@ -5,7 +5,7 @@
 #include "SimG4Common/ParticleInformation.h"
 #include "SimG4Interface/IG4SimSvc.h"
 
-// albers
+// datamodel
 #include "datamodel/GenVertexCollection.h"
 #include "datamodel/MCParticleCollection.h"
 
@@ -16,7 +16,7 @@
 DECLARE_ALGORITHM_FACTORY(G4SimAlg)
 
 G4SimAlg::G4SimAlg(const std::string& aName, ISvcLocator* aSvcLoc):
-GaudiAlgorithm(aName, aSvcLoc) {
+  GaudiAlgorithm(aName, aSvcLoc) {
   declareInput("genParticles", m_genParticles);
   declareProperty("outputs",m_saveToolNames);
 }
@@ -32,10 +32,11 @@ StatusCode G4SimAlg::initialize() {
   }
   for(auto& toolname: m_saveToolNames) {
     m_saveTools.push_back(tool<IG4SaveOutputTool>(toolname));
-  // if (!) {
-  //   error() << "Unable to retrieve the output saving tool." << endmsg;
-  //   return StatusCode::FAILURE;
-  // }
+    // FIXME: check StatusCode once the m_saveTools is a ToolHandleArray
+    // if (!) {
+    //   error() << "Unable to retrieve the output saving tool." << endmsg;
+    //   return StatusCode::FAILURE;
+    // }
   }
   return StatusCode::SUCCESS;
 }
@@ -65,13 +66,13 @@ G4Event* G4SimAlg::EDM2G4() {
   // Event will be passed to G4RunManager and be deleted in G4RunManager::RunTermination()
   G4Event* g4_event = new G4Event();
   // Creating EDM collections
-  const MCParticleCollection& mcparticles = *(m_genParticles.get());
+  const fcc::MCParticleCollection* mcparticles = m_genParticles.get();
   // Adding one particle per one vertex => vertices repeated
-  for(const auto& mcparticle : mcparticles) {
-    const ConstGenVertex& v = mcparticle.StartVertex();
+  for(const auto& mcparticle : *mcparticles) {
+    const fcc::ConstGenVertex& v = mcparticle.StartVertex();
     G4PrimaryVertex* g4_vertex = new G4PrimaryVertex
       (v.Position().X*sim::edm2g4::length, v.Position().Y*sim::edm2g4::length, v.Position().Z*sim::edm2g4::length, v.Ctau()*sim::edm2g4::length);
-    const BareParticle& mccore = mcparticle.Core();
+    const fcc::BareParticle& mccore = mcparticle.Core();
     G4PrimaryParticle* g4_particle = new G4PrimaryParticle
       (mccore.Type, mccore.P4.Px*sim::edm2g4::energy, mccore.P4.Py*sim::edm2g4::energy, mccore.P4.Pz*sim::edm2g4::energy);
     g4_particle->SetUserInformation(new sim::ParticleInformation(mcparticle));

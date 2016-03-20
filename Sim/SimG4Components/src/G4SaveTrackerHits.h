@@ -8,10 +8,12 @@
 #include "FWCore/DataHandle.h"
 #include "SimG4Interface/IG4SaveOutputTool.h"
 
-// albers
+// datamodel
+namespace fcc {
 class TrackClusterCollection;
 class TrackHitCollection;
 class TrackClusterHitsAssociationCollection;
+}
 
 /** @class G4SaveTrackerHits SimG4Components/src/G4SaveTrackerHits.h G4SaveTrackerHits.h
  *
@@ -22,7 +24,7 @@ class TrackClusterHitsAssociationCollection;
 
 class G4SaveTrackerHits: public GaudiTool, virtual public IG4SaveOutputTool {
 public:
-  G4SaveTrackerHits(const std::string& aType , const std::string& aName,
+  explicit G4SaveTrackerHits(const std::string& aType , const std::string& aName,
                   const IInterface* aParent);
   virtual ~G4SaveTrackerHits();
   /**  Initialize.
@@ -42,11 +44,11 @@ public:
   virtual StatusCode saveOutput(const G4Event& aEvent) final;
 private:
   /// Handle for tracker clusters
-  DataHandle<TrackClusterCollection> m_trackClusters;
+  DataHandle<fcc::TrackClusterCollection> m_trackClusters;
   /// Handle for tracker hits
-  DataHandle<TrackHitCollection> m_trackHits;
+  DataHandle<fcc::TrackHitCollection> m_trackHits;
   /// Handle for tracker hits-clusters associations
-  DataHandle<TrackClusterHitsAssociationCollection> m_trackHitsClusters;
+  DataHandle<fcc::TrackClusterHitsAssociationCollection> m_trackHitsClusters;
 
 };
 

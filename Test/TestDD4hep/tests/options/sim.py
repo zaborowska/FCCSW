@@ -36,7 +36,6 @@ from Configurables import G4SimAlg, G4SaveCalHits
 savecaltool = G4SaveCalHits("saveECalHits", caloType = "ECal")
 savecaltool.DataOutputs.caloClusters.Path = "caloClusters"
 savecaltool.DataOutputs.caloHits.Path = "caloHits"
-savecaltool.DataOutputs.caloHitsClusters.Path = "caloAssociations"
 geantsim = G4SimAlg("G4SimAlg", outputs= ["G4SaveCalHits/saveECalHits",
                                           "InspectHitsCollectionsTool"])
 geantsim.DataInputs.genParticles.Path="allGenParticles"

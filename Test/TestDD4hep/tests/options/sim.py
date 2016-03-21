@@ -11,7 +11,7 @@ pgun = MomentumRangeParticleGun("PGun",
                                 PhiMax = 1.6) # rad
 gen = ParticleGunAlg("ParticleGun", ParticleGunTool=pgun)
 gen.DataOutputs.hepmc.Path = "hepmc"
-ppservice = Gaudi__ParticlePropertySvc("ParticlePropertySvc", ParticlePropertiesFile="../../../Generation/data/ParticleTable.txt")
+ppservice = Gaudi__ParticlePropertySvc("ParticlePropertySvc", ParticlePropertiesFile="Generation/data/ParticleTable.txt")
 
 from Configurables import HepMCConverter
 hepmc_converter = HepMCConverter("Converter")
@@ -24,18 +24,19 @@ hepmc_dump = HepMCDumper("hepmc")
 hepmc_dump.DataInputs.hepmc.Path="hepmc"
 
 from Configurables import GeoSvc
-geoservice = GeoSvc("GeoSvc", detectors=['file:../../../Test/TestDD4hep/compact/Box.xml'], OutputLevel = DEBUG)
+geoservice = GeoSvc("GeoSvc", detectors=['file:Test/TestDD4hep/compact/Box_gflashCaloSD.xml'], OutputLevel = DEBUG)
 
-from Configurables import G4SimSvc
-geantservice = G4SimSvc("G4SimSvc",
-                        detector='G4DD4hepDetector',
-                        physicslist="G4FtfpBert",
-                        actions="G4FullSimActions")
+from Configurables import G4SimSvc, G4FastSimPhysicsList, G4FastSimActions, G4ParticleSmearSimple
+smeartool = G4ParticleSmearSimple("Smear", sigma = 0.15)
+actionstool = G4FastSimActions("Actions", smearing=smeartool)
+physicslisttool = G4FastSimPhysicsList("Physics", fullphysics="G4FtfpBert")
+geantservice = G4SimSvc("G4SimSvc", detector='G4DD4hepDetector', physicslist="G4FtfpBert", actions=actionstool)
 
 from Configurables import G4SimAlg, G4SaveCalHits
 savecaltool = G4SaveCalHits("saveECalHits", caloType = "ECal")
 savecaltool.DataOutputs.caloClusters.Path = "caloClusters"
 savecaltool.DataOutputs.caloHits.Path = "caloHits"
+savecaltool.DataOutputs.caloHitsClusters.Path = "caloAssociations"
 geantsim = G4SimAlg("G4SimAlg", outputs= ["G4SaveCalHits/saveECalHits",
                                           "InspectHitsCollectionsTool"])
 geantsim.DataInputs.genParticles.Path="allGenParticles"
@@ -44,7 +45,6 @@ from Configurables import FCCDataSvc, PodioOutput
 podiosvc = FCCDataSvc("EventDataSvc")
 out = PodioOutput("out", OutputLevel=DEBUG)
 out.outputCommands = ["keep *"]
-
 
 # ApplicationMgr
 from Configurables import ApplicationMgr

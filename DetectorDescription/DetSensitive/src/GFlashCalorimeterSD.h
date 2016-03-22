@@ -19,7 +19,10 @@ public:
   ~GFlashCalorimeterSD();
 
   void Initialize(G4HCofThisEvent* aHCE);
+  // This method is called if full simulation is performed
+  // (particle did not trigger the gflash model because of e.g. confinement)
   virtual bool ProcessHits(G4Step* aStep, G4TouchableHistory* aROhist) final;
+  // This method will be called if gflash parametrisation is performed
   virtual bool ProcessHits(G4GFlashSpot* aSpot, G4TouchableHistory* aROhist) final;
   uint64_t getCellID(G4Step* aStep);
   uint64_t getCellID(G4GFlashSpot* aSpot);

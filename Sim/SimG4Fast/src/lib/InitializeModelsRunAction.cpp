@@ -11,8 +11,6 @@
 #include "GFlashShowerModel.hh"
 #include "GFlashHitMaker.hh"
 #include "GFlashParticleBounds.hh"
-#include "G4NistManager.hh"
-#include "G4Material.hh"
 
 namespace sim {
 InitializeModelsRunAction::InitializeModelsRunAction(const std::string& aSmearingToolName,
@@ -49,6 +47,8 @@ void InitializeModelsRunAction::BeginOfRunAction(const G4Run* /*aRun*/) {
         m_g4regions.emplace_back(new G4Region(world->GetDaughter(iter_region)->GetLogicalVolume()->GetName()+"_fastsim"));
         m_g4regions.back()->AddRootLogicalVolume(world->GetDaughter(iter_region)->GetLogicalVolume());
         std::unique_ptr<GFlashShowerModel> model(new GFlashShowerModel(m_g4regions.back()->GetName(),m_g4regions.back()));
+        // make model active
+        model->SetFlagParamType(1);
         // proper parametrisation with the material
         // TODO check if deleted
         GFlashHomoShowerParameterisation* fParameterisation = new GFlashHomoShowerParameterisation(
@@ -58,7 +58,7 @@ void InitializeModelsRunAction::BeginOfRunAction(const G4Run* /*aRun*/) {
         // TODO check if deleted
         GFlashParticleBounds* fParticleBounds = new GFlashParticleBounds();
         model->SetParticleBounds(*fParticleBounds);
-        // Makes the EnergieSpots
+        // Makes the Energy Spots in the SD attached to the volume
         // TODO check if deleted
         GFlashHitMaker* fHitMaker = new GFlashHitMaker();
         model->SetHitMaker(*fHitMaker);

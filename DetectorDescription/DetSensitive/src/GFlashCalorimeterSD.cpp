@@ -1,17 +1,19 @@
 #include "GFlashCalorimeterSD.h"
-#include "G4Step.hh"
-#include "G4HCofThisEvent.hh"
-#include "G4GFlashSpot.hh"
-#include "G4TouchableHistory.hh"
-#include "G4ios.hh"
 
 // DD4hep
 #include "DDG4/Geant4Hits.h"
 #include "DDG4/Geant4Data.h"
 #include "DDG4/Geant4Mapping.h"
 #include "DDG4/Geant4VolumeManager.h"
+
+// CLHEP
 #include "CLHEP/Vector/ThreeVector.h"
-#include "CLHEP/Vector/ThreeVector.h"
+
+// Geant4
+#include "G4Step.hh"
+#include "G4HCofThisEvent.hh"
+#include "G4GFlashSpot.hh"
+#include "G4TouchableHistory.hh"
 
 namespace det {
 GFlashCalorimeterSD::GFlashCalorimeterSD(std::string aDetectorName,
@@ -30,7 +32,8 @@ void GFlashCalorimeterSD::Initialize(G4HCofThisEvent* aHitsCollections)
   // create a collection of hits and add it to G4HCofThisEvent
   // get id for collection
   static int HCID = -1;
-  calorimeterCollection = new G4THitsCollection<DD4hep::Simulation::Geant4CalorimeterHit>(SensitiveDetectorName,collectionName[0]);
+  calorimeterCollection = new G4THitsCollection<DD4hep::Simulation::Geant4CalorimeterHit>(
+    SensitiveDetectorName,collectionName[0]);
   if(HCID<0)
     HCID = GetCollectionID(0);
   aHitsCollections->AddHitsCollection(HCID,calorimeterCollection);
@@ -38,7 +41,7 @@ void GFlashCalorimeterSD::Initialize(G4HCofThisEvent* aHitsCollections)
 
 bool GFlashCalorimeterSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
-  // check if energy was deposited
+  // This method is called if full simulation is performed
   G4double edep = aStep->GetTotalEnergyDeposit();
   if(edep==0.) return false;
 
@@ -52,7 +55,31 @@ bool GFlashCalorimeterSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   // create a hit and add it to collection
   const G4Track* track = aStep->GetTrack();
   uint64_t id = getCellID(aStep);
-  std::cout<<"ProcessHits for aStep: "<<id<<std::endl;
+  DD4hep::Simulation::Geant4CalorimeterHit* hit, *hitMatch = nullptr;
+  for(int i=0; i<calorimeterCollection->entries(); i++) {
+    hit = dynamic_cast<DD4hep::Simulation::Geant4CalorimeterHit*>(calorimeterCollection->GetHit(i));
+    if(hit->cellID == id) {
+      hitMatch = hit;
+      continue;
+    }
+  }
+  // create a new hit if it does not exist
+  if ( !hitMatch )  {
+    hitMatch = new  DD4hep::Simulation::Geant4CalorimeterHit(pos);
+    hitMatch->cellID  = id;
+    calorimeterCollection->insert(hitMatch);
+  }
+  hitMatch->energyDeposit += edep;
+  return true;
+}
+
+bool GFlashCalorimeterSD::ProcessHits(G4GFlashSpot* aSpot, G4TouchableHistory*) {
+  // This method will be called if gflash parametrisation is performed
+  G4double edep = aSpot->GetEnergySpot()->GetEnergy();
+  if(edep==0.) return false;
+  uint64_t id = getCellID(aSpot);
+  CLHEP::Hep3Vector geantPos = aSpot->GetEnergySpot()->GetPosition();
+  DD4hep::Simulation::Position pos(geantPos.x(), geantPos.y(), geantPos.z());
   DD4hep::Simulation::Geant4CalorimeterHit* hit, *hitMatch = nullptr;
   for(int i=0; i<calorimeterCollection->entries(); i++) {
     hit = dynamic_cast<DD4hep::Simulation::Geant4CalorimeterHit*>(calorimeterCollection->GetHit(i));
@@ -67,19 +94,6 @@ bool GFlashCalorimeterSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
     calorimeterCollection->insert(hitMatch);
   }
   hitMatch->energyDeposit += edep;
-  return true;
-}
-
-bool GFlashCalorimeterSD::ProcessHits(G4GFlashSpot* aSpot, G4TouchableHistory*) {
-  G4double edep = aSpot->GetEnergySpot()->GetEnergy();
-  if(edep==0.) return false;
-  uint64_t id = getCellID(aSpot);
-  CLHEP::Hep3Vector geantPos = aSpot->GetEnergySpot()->GetPosition();
-  DD4hep::Simulation::Position pos(geantPos.x(), geantPos.y(), geantPos.z());
-  DD4hep::Simulation::Geant4CalorimeterHit* hit = new DD4hep::Simulation::Geant4CalorimeterHit(pos);
-  hit->cellID = id;
-  hit->energyDeposit = edep;
-  std::cout<<"ProcessHits for aStep: "<<id<<std::endl;
   return true;
 }
 

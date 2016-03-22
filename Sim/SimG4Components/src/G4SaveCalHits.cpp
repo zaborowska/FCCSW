@@ -1,5 +1,8 @@
 #include "G4SaveCalHits.h"
 
+// FCCSW
+#include "SimG4Common/Units.h"
+
 // Geant4
 #include "G4Event.hh"
 
@@ -69,12 +72,12 @@ StatusCode G4SaveCalHits::saveOutput(const G4Event& aEvent) {
           fcc::BareHit& edmHitCore = edmHit.Core();
           fcc::BareCluster& edmClusterCore = edmCluster.Core();
           edmHitCore.Cellid = hit->cellID;
-          edmHitCore.Energy = hit->energyDeposit;
+          edmHitCore.Energy = hit->energyDeposit*sim::g42edm::energy;
 
-          edmClusterCore.position.X = hit->position.x();
-          edmClusterCore.position.Y = hit->position.y();
-          edmClusterCore.position.Z = hit->position.z();
-          edmClusterCore.Energy = hit->energyDeposit;
+          edmClusterCore.position.X = hit->position.x()*sim::g42edm::length;
+          edmClusterCore.position.Y = hit->position.y()*sim::g42edm::length;
+          edmClusterCore.position.Z = hit->position.z()*sim::g42edm::length;
+          edmClusterCore.Energy = hit->energyDeposit*sim::g42edm::energy;
 
           // CaloClusterHitsAssociationHandle edmAssociation = edmAssociations->create();
           // edmAssociation.mod().Cluster = edmCluster;

@@ -6,6 +6,13 @@
 
        http://www.engineeringtoolbox.com/air-composition-24_212.html
   -->
+  <material name="PbWO4">
+    <D type="density" unit="g/cm3" value="8.280"/>
+    <composite n="1" ref="Pb"/>
+    <composite n="1" ref="W"/>
+    <composite n="4" ref="O"/>
+  </material>
+  
   <material name="FR4">
     <D type="density" unit="g/cm3" value="1.7"/>
     <fraction n="0.1808" ref="Si"/>

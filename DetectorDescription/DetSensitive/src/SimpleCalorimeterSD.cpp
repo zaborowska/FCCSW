@@ -17,7 +17,6 @@ SimpleCalorimeterSD::SimpleCalorimeterSD(const std::string& aDetectorName,
   : G4VSensitiveDetector(aDetectorName), m_seg(aSeg) {
   // name of the collection of hits is determined byt the readout name (from XML)
   collectionName.insert(aReadoutName);
-  std::cout<<" Adding a collection with the name: "<<aReadoutName<<std::endl;
 }
 
 SimpleCalorimeterSD::~SimpleCalorimeterSD(){}
@@ -49,26 +48,22 @@ bool SimpleCalorimeterSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   DD4hep::Simulation::Position pos(midPos.x(), midPos.y(), midPos.z());
   // check the cell ID
   uint64_t id = segmentation::cellID(m_seg, *aStep);
-  DD4hep::Simulation::Geant4CalorimeterHit* hit, *hitMatch = nullptr;
+  DD4hep::Simulation::Geant4CalorimeterHit* hit = nullptr;
   // Check if there is already some energy deposit in that cell
   for(int i=0; i<calorimeterCollection->entries(); i++) {
     hit = dynamic_cast<DD4hep::Simulation::Geant4CalorimeterHit*>
       (calorimeterCollection->GetHit(i));
     if(hit->cellID == id) {
-      hitMatch = hit;
-      hitMatch->energyDeposit += edep;
+      hit->energyDeposit += edep;
       return true;
     }
   }
   // if not, create a new hit
-  if ( !hitMatch )  {
-    // deleted in ~G4Event
-    hitMatch = new DD4hep::Simulation::Geant4CalorimeterHit(pos);
-    hitMatch->cellID  = id;
-    hitMatch->energyDeposit = edep;
-    calorimeterCollection->insert(hitMatch);
-    return true;
-  }
-  return false;
+  // deleted in ~G4Event
+  hit = new DD4hep::Simulation::Geant4CalorimeterHit(pos);
+  hit->cellID = id;
+  hit->energyDeposit = edep;
+  calorimeterCollection->insert(hit);
+  return true;
 }
 }

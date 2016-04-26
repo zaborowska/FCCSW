@@ -1,9 +1,20 @@
+
+
+### \file
+### \ingroup SimulationTests
+### | **input (alg)**                 | other algorithms                   |                                     |                          |                                    | **output (alg)**                                |
+### | ------------------------------- | ---------------------------------- | ----------------------------------- | ------------------------ | ---------------------------------- | ----------------------------------------------- |
+### | read events from a HepMC file   | convert `HepMC::GenEvent` to EDM   | geometry taken from TestTracker.xml | FTFP_BERT physics list   | save Tracker and HCAL hits         | write the EDM output to ROOT file using PODIO   |
+
+
+
+
 from Gaudi.Configuration import *
 from Configurables import ApplicationMgr, HepMCReader, HepMCDumper, FCCDataSvc
 
 podioevent = FCCDataSvc("EventDataSvc")
 
-reader = HepMCReader("Reader", Filename="/afs/cern.ch/exp/fcc/sw/0.6/testsamples/example_MyPythia.dat")
+reader = HepMCReader("Reader", Filename="/afs/cern.ch/exp/fcc/sw/0.7/testsamples/FCC_minbias_100TeV.dat")
 reader.DataOutputs.hepmc.Path = "hepmc"
 
 from Configurables import HepMCConverter
@@ -30,13 +41,13 @@ geantsim.DataInputs.genParticles.Path="allGenParticles"
 
 from Configurables import PodioOutput
 out = PodioOutput("out",
-                   OutputLevel=DEBUG,
-                  filename = "out_full_moreEvents.root")
+                  filename = "out_full_moreEvents.root",
+                  OutputLevel=DEBUG)
 out.outputCommands = ["keep *"]
 
-ApplicationMgr( TopAlg = [reader, hepmc_converter, geantsim, out],
-                EvtSel = 'NONE',
-                EvtMax   = 100,
-                ExtSvc = [podioevent, geoservice, geantservice], # order! geo needed by geant
-                OutputLevel=DEBUG
- )
+ApplicationMgr( TopAlg=[reader, hepmc_converter, geantsim, out],
+                EvtSel='NONE',
+                EvtMax=10,
+                ## order! geo needed by geant
+                ExtSvc=[podioevent, geoservice, geantservice],
+                OutputLevel=DEBUG)

@@ -18,6 +18,7 @@ gaudi_add_module(SimG4Components
                  INCLUDE_DIRS Geant4 FWCore SimG4Common SimG4Interface DD4hep ROOT
                  LINK_LIBRARIES GaudiAlgLib Geant4 FWCore SimG4Common DD4hep ROOT)
 
+
 include(CTest)
 gaudi_add_test(GeantFullSimHCal
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
@@ -25,7 +26,7 @@ gaudi_add_test(GeantFullSimHCal
 gaudi_add_test(GeantFullSimECal
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                FRAMEWORK tests/options/geant_fullsim_ecal.py)
-gaudi_add_test(GeantFullSimGdmlDetector
+gaudi_add_test(GeantFullSimGdml
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                FRAMEWORK tests/options/geant_fullsim_gdml.py)
 gaudi_add_test(GeantFullSimMoreEvents
@@ -35,14 +36,3 @@ gaudi_add_test(GeantFullSimMoreEventsCheckNoEvents
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/Sim/SimG4Components/tests/
                COMMAND python ./scripts/geant_fullsim_moreEvents_checkNoEvents.py
                DEPENDS GeantFullSimMoreEvents)
-gaudi_add_test(GeantFastSimSimpleSmearing
-               WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/Sim/SimG4Components/tests/
-               FRAMEWORK tests/options/geant_fastsim_simple.py)
-gaudi_add_test(GeantFastSimSimpleSmearingCheckSigma
-               WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/Sim/SimG4Components/tests/
-               COMMAND python ./scripts/geant_fastsim_simple_checkSigma.py
-               DEPENDS GeantFastSimSimpleSmearing)
-gaudi_add_test(GeantFastSimSimpleSmearingCheckNoParticles
-               WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/Sim/SimG4Components/tests/
-               COMMAND python ./scripts/geant_fastsim_checkNoParticles.py
-               DEPENDS GeantFastSimSimpleSmearing)

@@ -1,6 +1,7 @@
 #include "SimG4Fast/FastSimActions.h"
 
 // FCCSW
+#include "SimG4Fast/SaveParticlesTrackingAction.h"
 #include "SimG4Fast/InitializeModelsRunAction.h"
 
 namespace sim{

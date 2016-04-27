@@ -12,6 +12,7 @@
 // Geant
 #include "G4HCofThisEvent.hh"
 #include "G4Event.hh"
+#include "G4Geantino.hh"
 
 DECLARE_ALGORITHM_FACTORY(G4SimAlg)
 
@@ -73,8 +74,15 @@ G4Event* G4SimAlg::EDM2G4() {
     G4PrimaryVertex* g4_vertex = new G4PrimaryVertex
       (v.Position().X*sim::edm2g4::length, v.Position().Y*sim::edm2g4::length, v.Position().Z*sim::edm2g4::length, v.Ctau()*sim::edm2g4::length);
     const fcc::BareParticle& mccore = mcparticle.Core();
-    G4PrimaryParticle* g4_particle = new G4PrimaryParticle
-      (mccore.Type, mccore.P4.Px*sim::edm2g4::energy, mccore.P4.Py*sim::edm2g4::energy, mccore.P4.Pz*sim::edm2g4::energy);
+    G4PrimaryParticle* g4_particle;
+    // check if geantino
+    if(mccore.Type == 999) {
+      g4_particle = new G4PrimaryParticle
+        (G4Geantino::Definition(), mccore.P4.Px*sim::edm2g4::energy, mccore.P4.Py*sim::edm2g4::energy, mccore.P4.Pz*sim::edm2g4::energy);
+    } else {
+      g4_particle = new G4PrimaryParticle
+        (mccore.Type, mccore.P4.Px*sim::edm2g4::energy, mccore.P4.Py*sim::edm2g4::energy, mccore.P4.Pz*sim::edm2g4::energy);
+    }
     g4_particle->SetUserInformation(new sim::ParticleInformation(mcparticle));
     g4_vertex->SetPrimary(g4_particle);
     g4_event->AddPrimaryVertex(g4_vertex);

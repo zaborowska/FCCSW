@@ -43,9 +43,7 @@ bool GFlashCalorimeterSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
   // as in DD4hep::Simulation::Geant4GenericSD<Calorimeter>
   CLHEP::Hep3Vector prePos = aStep->GetPreStepPoint()->GetPosition();
-  CLHEP::Hep3Vector postPos = aStep->GetPostStepPoint()->GetPosition();
-  CLHEP::Hep3Vector midPos = 0.5*(postPos + prePos);
-  DD4hep::Simulation::Position pos(midPos.x(), midPos.y(), midPos.z());
+  DD4hep::Simulation::Position pos(prePos.x(), prePos.y(), prePos.z());
   // check the cell ID
   uint64_t id = segmentation::cellID(m_seg, *aStep);
   DD4hep::Simulation::Geant4CalorimeterHit* hit = nullptr;

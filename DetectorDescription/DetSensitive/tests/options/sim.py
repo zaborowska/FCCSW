@@ -40,8 +40,7 @@ from Configurables import G4SimAlg, G4SaveCalHits
 savecaltool = G4SaveCalHits("saveECalHits", caloType = "ECal")
 savecaltool.DataOutputs.caloClusters.Path = "caloClusters"
 savecaltool.DataOutputs.caloHits.Path = "caloHits"
-geantsim = G4SimAlg("G4SimAlg", outputs= ["G4SaveCalHits/saveECalHits",
-                                          "InspectHitsCollectionsTool"])
+geantsim = G4SimAlg("G4SimAlg", outputs= ["G4SaveCalHits/saveECalHits"])
 geantsim.DataInputs.genParticles.Path="allGenParticles"
 
 from Configurables import FCCDataSvc, PodioOutput
@@ -53,7 +52,7 @@ out.outputCommands = ["keep *"]
 from Configurables import ApplicationMgr
 ApplicationMgr( TopAlg = [gen, hepmc_converter, hepmc_dump, geantsim, out],
                 EvtSel = 'NONE',
-                EvtMax   = 1,
+                EvtMax   = 2,
                 # order is important, as GeoSvc is needed by G4SimSvc
                 ExtSvc = [podiosvc, ppservice, geoservice, geantservice],
                 OutputLevel=INFO

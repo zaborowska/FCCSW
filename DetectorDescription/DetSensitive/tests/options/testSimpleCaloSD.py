@@ -36,8 +36,7 @@ from Configurables import G4SimAlg, G4SaveCalHits
 savehcaltool = G4SaveCalHits("saveECalHits", caloType = "ECal")
 savehcaltool.DataOutputs.caloClusters.Path = "caloClusters"
 savehcaltool.DataOutputs.caloHits.Path = "caloHits"
-geantsim = G4SimAlg("G4SimAlg", outputs= ["G4SaveCalHits/saveECalHits",
-                                          "InspectHitsCollectionsTool"])
+geantsim = G4SimAlg("G4SimAlg", outputs= ["G4SaveCalHits/saveECalHits"])
 geantsim.DataInputs.genParticles.Path="allGenParticles"
 
 from Configurables import FCCDataSvc, PodioOutput

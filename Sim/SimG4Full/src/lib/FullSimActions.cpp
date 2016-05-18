@@ -1,4 +1,5 @@
 #include "SimG4Full/FullSimActions.h"
+#include "SimG4Common/KillSecondariesAction.h"
 
 namespace sim {
 FullSimActions::FullSimActions():
@@ -6,5 +7,7 @@ FullSimActions::FullSimActions():
 
 FullSimActions::~FullSimActions() {}
 
-void FullSimActions::Build() const {}
+void FullSimActions::Build() const {
+  SetUserAction(new KillSecondariesAction);
+}
 }

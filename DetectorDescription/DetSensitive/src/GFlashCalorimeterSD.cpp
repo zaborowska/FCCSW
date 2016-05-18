@@ -6,6 +6,7 @@
 // DD4hep
 #include "DDG4/Geant4Mapping.h"
 #include "DDG4/Geant4VolumeManager.h"
+#include "DDG4/Geant4Converter.h"
 
 // CLHEP
 #include "CLHEP/Vector/ThreeVector.h"
@@ -94,7 +95,7 @@ uint64_t GFlashCalorimeterSD::cellID(const G4GFlashSpot& aSpot) {
   // TODO fix that
   DD4hep::Geometry::VolumeManager::VolumeID volID = 0;//volMgr.volumeID(aSpot->GetTouchableHandle());
   if (m_seg.isValid() )  {
-    G4ThreeVector global = 0.5*(aSpot.GetEnergySpot()->GetPosition());
+    G4ThreeVector global = aSpot.GetEnergySpot()->GetPosition();
     G4ThreeVector local = aSpot.GetTouchableHandle()->GetHistory()->GetTopTransform().TransformPoint(global);
     DD4hep::Simulation::Position loc(local.x()*MM_2_CM, local.y()*MM_2_CM, local.z()*MM_2_CM);
     DD4hep::Simulation::Position glob(global.x()*MM_2_CM, global.y()*MM_2_CM, global.z()*MM_2_CM);

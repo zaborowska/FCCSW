@@ -77,8 +77,8 @@ StatusCode MomentumRangeParticleGun::initialize() {
   
   info() << endmsg ;
   
-  info() << "Momentum range: " << m_minMom / Gaudi::Units::GeV << " GeV <-> "
-   << m_maxMom / Gaudi::Units::GeV << " GeV" << endmsg ;
+  info() << "Momentum range: " << m_minMom << " GeV <-> "
+   << m_maxMom << " GeV" << endmsg ;
   info() << "Theta range: " << m_minTheta / Gaudi::Units::rad << " rad <-> "
    << m_maxTheta / Gaudi::Units::rad << " rad" << endmsg ;
   info() << "Phi range: " << m_minPhi / Gaudi::Units::rad << " rad <-> "

@@ -1,0 +1,30 @@
+################################################################################
+# Package: TestGeometry
+################################################################################
+gaudi_subdir(TestGeometry v1r0)
+
+gaudi_depends_on_subdirs(GaudiKernel Sim/SimG4Interface)
+
+find_package(Geant4)
+include(${Geant4_USE_FILE})
+find_package(ROOT)
+
+find_package(ROOT COMPONENTS MathCore GenVector Geom REQUIRED)
+
+gaudi_install_headers(TestGeometry)
+
+gaudi_add_library(TestGeometry
+		  src/lib/*.cpp
+		  INCLUDE_DIRS Geant4 ROOT
+		  LINK_LIBRARIES GaudiKernel Geant4 ROOT
+        PUBLIC_HEADERS TestGeometry)
+
+gaudi_add_module(TestGeometryPlugins
+                 src/components/*.cpp
+                 INCLUDE_DIRS Geant4 SimG4Interface TestGeometry
+                 LINK_LIBRARIES GaudiKernel Geant4 TestGeometry)
+
+include(CTest)
+gaudi_add_test(GeantGdmlWithSD
+               WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/Test/TestGeometry/tests/
+               FRAMEWORK tests/options/geant_fullsim_gdml.py)

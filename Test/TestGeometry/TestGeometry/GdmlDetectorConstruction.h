@@ -1,5 +1,5 @@
-#ifndef SIMG4COMMON_GDMLDETECTORCONSTRUCTION_H
-#define SIMG4COMMON_GDMLDETECTORCONSTRUCTION_H
+#ifndef TESTGEOMETRY_GDMLDETECTORCONSTRUCTION_H
+#define TESTGEOMETRY_GDMLDETECTORCONSTRUCTION_H
 
 // Geant
 #include "G4VUserDetectorConstruction.hh"
@@ -10,14 +10,14 @@
 #include "GaudiKernel/IMessageSvc.h"
 #include "GaudiKernel/MsgStream.h"
 
-/** @class GdmlDetectorConstruction SimG4Common/SimG4Common/GdmlDetectorConstruction.h GdmlDetectorConstruction.h
+/** @class GdmlDetectorConstruction TestGeometry/TestGeometry/GdmlDetectorConstruction.h GdmlDetectorConstruction.h
  *
- *  Detector construction from the GDML file.
+ *  Detector construction from the GDML file. It includes simple sensitive detector construction for test purposes.
  *
  *  @author Anna Zaborowska
  */
 
-namespace sim {
+namespace test {
 class GdmlDetectorConstruction: public G4VUserDetectorConstruction {
 public:
   /**  Constructor.
@@ -29,8 +29,7 @@ public:
    *   @return World wolume.
    */
   virtual G4VPhysicalVolume* Construct() override;
-  /**  Create sensitive detectors. User needs to provide own implementation and attach appropriate information
-   *   to the GDML file (that will connect volume with a sensitive detector type).
+  /**  Create sensitive detectors. Simple sensitive detector is created.
    *   See Geant examples/extended/persistency/gdml/G04 for further details.
    */
   virtual void ConstructSDandField() override;
@@ -46,4 +45,4 @@ private:
 };
 }
 
-#endif /* SIMG4COMMON_GDMLDETECTORCONSTRUCTION_H */
+#endif /* TESTGEOMETRY_GDMLDETECTORCONSTRUCTION_H */

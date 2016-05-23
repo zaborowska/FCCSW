@@ -8,6 +8,6 @@ FullSimActions::FullSimActions():
 FullSimActions::~FullSimActions() {}
 
 void FullSimActions::Build() const {
-  SetUserAction(new KillSecondariesAction);
+  //SetUserAction(new KillSecondariesAction);
 }
 }

@@ -51,6 +51,8 @@ StatusCode G4SaveStandaloneCalHits::saveOutput(const G4Event& aEvent) {
   G4VHitsCollection* collect;
   StandaloneCalorimeterHit* hit;
   double fCellNo = 201.;
+  double energyTotal;
+  int hitNo;
   if(collections != nullptr) {
     fcc::CaloClusterCollection* edmClusters = new fcc::CaloClusterCollection();
     fcc::CaloHitCollection* edmHits = new fcc::CaloHitCollection();
@@ -59,6 +61,8 @@ StatusCode G4SaveStandaloneCalHits::saveOutput(const G4Event& aEvent) {
       collect = collections->GetHC(iter_coll);
       if (collect->GetName().find(m_calType) != std::string::npos) {
         size_t n_hit = collect->GetSize();
+        energyTotal = 0;
+        hitNo = 0;
         info() << "\t" << n_hit<< " hits are stored in a HCal collection #"<<iter_coll<<": "<<collect->GetName()<<endmsg;
         for(size_t iter_hit=0; iter_hit<n_hit; iter_hit++ ) {
           hit = dynamic_cast<StandaloneCalorimeterHit*>(collect->GetHit(iter_hit));
@@ -75,17 +79,22 @@ StatusCode G4SaveStandaloneCalHits::saveOutput(const G4Event& aEvent) {
             fcc::BareCluster& edmClusterCore = edmCluster.Core();
             edmHitCore.Cellid = fCellNo*fCellNo*hit->GetXid()+fCellNo*hit->GetYid()+hit->GetZid();
             edmHitCore.Energy = hit->GetEdep()*sim::g42edm::energy;
+            if( edmHitCore.Energy!=0)
+              hitNo++;
 
             edmClusterCore.position.X = hit->GetPos().x()*sim::g42edm::length;
             edmClusterCore.position.Y = hit->GetPos().y()*sim::g42edm::length;
             edmClusterCore.position.Z = hit->GetPos().z()*sim::g42edm::length;
             edmClusterCore.Energy = hit->GetEdep()*sim::g42edm::energy;
-
+            energyTotal += edmClusterCore.Energy;
             // CaloClusterHitsAssociationHandle edmAssociation = edmAssociations->create();
             // edmAssociation.mod().Cluster = edmCluster;
             // edmAssociation.mod().Hit = edmHit;
           }
         }
+        debug() << "\t" << hitNo<< " hits are non-zero in collection #"<<iter_coll<<": "<<collect->GetName()<<endmsg;
+        debug() << "\t" << edmClusters->size()<< " hits are stored in EDM"<<endmsg;
+        debug() << "\t" << energyTotal<< " GeV = total energy stored"<<endmsg;
       }
     }
     m_caloClusters.put(edmClusters);

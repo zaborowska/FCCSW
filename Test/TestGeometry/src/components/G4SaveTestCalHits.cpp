@@ -1,8 +1,8 @@
-#include "G4SaveStandaloneCalHits.h"
+#include "G4SaveTestCalHits.h"
 
 // FCCSW
 #include "SimG4Common/Units.h"
-#include "DetSensitive/StandaloneCalorimeterHit.h"
+#include "TestGeometry/CalorimeterHit.h"
 
 // Geant4
 #include "G4Event.hh"
@@ -11,12 +11,9 @@
 #include "datamodel/CaloClusterCollection.h"
 #include "datamodel/CaloHitCollection.h"
 
-// DD4hep
-#include "DDG4/Geant4Hits.h"
+DECLARE_TOOL_FACTORY(G4SaveTestCalHits)
 
-DECLARE_TOOL_FACTORY(G4SaveStandaloneCalHits)
-
-G4SaveStandaloneCalHits::G4SaveStandaloneCalHits(const std::string& aType, const std::string& aName, const IInterface* aParent) :
+G4SaveTestCalHits::G4SaveTestCalHits(const std::string& aType, const std::string& aName, const IInterface* aParent) :
   GaudiTool(aType, aName, aParent) {
   declareInterface<IG4SaveOutputTool>(this);
   declareProperty("caloType", m_calType);
@@ -27,9 +24,9 @@ G4SaveStandaloneCalHits::G4SaveStandaloneCalHits(const std::string& aType, const
   declareProperty("DataOutputs", outputDataObjects());
 }
 
-G4SaveStandaloneCalHits::~G4SaveStandaloneCalHits() {}
+G4SaveTestCalHits::~G4SaveTestCalHits() {}
 
-StatusCode G4SaveStandaloneCalHits::initialize() {
+StatusCode G4SaveTestCalHits::initialize() {
   if(GaudiTool::initialize().isFailure()) {
     return StatusCode::FAILURE;
   }
@@ -42,14 +39,14 @@ StatusCode G4SaveStandaloneCalHits::initialize() {
   return StatusCode::SUCCESS;
 }
 
-StatusCode G4SaveStandaloneCalHits::finalize() {
+StatusCode G4SaveTestCalHits::finalize() {
   return GaudiTool::finalize();
 }
 
-StatusCode G4SaveStandaloneCalHits::saveOutput(const G4Event& aEvent) {
+StatusCode G4SaveTestCalHits::saveOutput(const G4Event& aEvent) {
   G4HCofThisEvent* collections = aEvent.GetHCofThisEvent();
   G4VHitsCollection* collect;
-  StandaloneCalorimeterHit* hit;
+  test::CalorimeterHit* hit;
   double fCellNo = 201.;
   double energyTotal;
   int hitNo;
@@ -63,15 +60,9 @@ StatusCode G4SaveStandaloneCalHits::saveOutput(const G4Event& aEvent) {
         size_t n_hit = collect->GetSize();
         energyTotal = 0;
         hitNo = 0;
-        info() << "\t" << n_hit<< " hits are stored in a HCal collection #"<<iter_coll<<": "<<collect->GetName()<<endmsg;
+        info() << "\t" << n_hit<< " hits are stored in a calorimeter collection #"<<iter_coll<<": "<<collect->GetName()<<endmsg;
         for(size_t iter_hit=0; iter_hit<n_hit; iter_hit++ ) {
-          hit = dynamic_cast<StandaloneCalorimeterHit*>(collect->GetHit(iter_hit));
-          // debug() << hit->cellID << " ";
-          // debug() << hit->energyDeposit << " ";
-
-          // debug() << hit->position.x() << " ";
-          // debug() << hit->position.y() << " ";
-          // debug() << hit->position.z() << endmsg;
+          hit = dynamic_cast<test::CalorimeterHit*>(collect->GetHit(iter_hit));
           if(hit->GetXid() != -1 && hit->GetYid() != -1 && hit->GetZid() != -1) {
             fcc::CaloHit edmHit = edmHits->create();
             fcc::CaloCluster edmCluster = edmClusters->create();

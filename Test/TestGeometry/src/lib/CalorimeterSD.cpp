@@ -47,8 +47,7 @@ G4bool CalorimeterSD::ProcessHits(G4Step* step, G4TouchableHistory*)
   G4double edep = step->GetTotalEnergyDeposit();
   if (edep==0.) return true;
 
-  G4TouchableHistory* touchable
-    = (G4TouchableHistory*)(step->GetPreStepPoint()->GetTouchable());
+  G4TouchableHistory* touchable = (G4TouchableHistory*)(step->GetPreStepPoint()->GetTouchable());
 
   G4int yNo = touchable->GetCopyNumber(1);
   G4int xNo = touchable->GetCopyNumber(2);
@@ -56,7 +55,6 @@ G4bool CalorimeterSD::ProcessHits(G4Step* step, G4TouchableHistory*)
 
   G4int hitID = fCellNo*fCellNo*xNo+fCellNo*yNo+zNo;
   CalorimeterHit* hit = (*fHitsCollection)[hitID];
-  G4StepPoint* preStepPoint = step->GetPreStepPoint();
 
   if(hit->GetXid()<0)
   {

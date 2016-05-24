@@ -1,5 +1,5 @@
-#ifndef SIMG4COMPONENTS_G4SAVECALHITS_H
-#define SIMG4COMPONENTS_G4SAVECALHITS_H
+#ifndef TESTGEOMETRY_G4SAVETESTCALHITS_H
+#define TESTGEOMETRY_G4SAVETESTCALHITS_H
 
 // Gaudi
 #include "GaudiAlg/GaudiTool.h"
@@ -15,18 +15,18 @@ class CaloHitCollection;
 class CaloClusterHitsAssociationCollection;
 }
 
-/** @class G4SaveStandaloneCalHits SimG4Components/src/G4SaveStandaloneCalHits.h G4SaveStandaloneCalHits.h
+/** @class G4SaveTestCalHits SimG4Components/src/G4SaveTestCalHits.h G4SaveTestCalHits.h
  *
  *  Save tracker hits tool.
  *
  *  @author Anna Zaborowska
  */
 
-class G4SaveStandaloneCalHits: public GaudiTool, virtual public IG4SaveOutputTool {
+class G4SaveTestCalHits: public GaudiTool, virtual public IG4SaveOutputTool {
 public:
-  explicit G4SaveStandaloneCalHits(const std::string& aType , const std::string& aName,
+  explicit G4SaveTestCalHits(const std::string& aType , const std::string& aName,
                   const IInterface* aParent);
-  virtual ~G4SaveStandaloneCalHits();
+  virtual ~G4SaveTestCalHits();
   /**  Initialize.
    *   @return status code
    */
@@ -52,4 +52,4 @@ private:
 
 };
 
-#endif /* SIMG4COMPONENTS_G4SAVECALHITS_H */
+#endif /* TESTGEOMETRY_G4SAVETESTCALHITS_H */

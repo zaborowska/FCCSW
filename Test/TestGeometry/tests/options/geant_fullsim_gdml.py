@@ -23,28 +23,21 @@ from Configurables import HepMCDumper
 hepmc_dump = HepMCDumper("hepmc")
 hepmc_dump.DataInputs.hepmc.Path="hepmc"
 
-if os.environ['SIMTYPE']=='full':
-    from Configurables import G4SimSvc, G4GdmlDetector
-    det = G4GdmlDetector("G4GdmlDetector", gdml = "../../../Sim/SimG4Common/gdml/gflashDetector.xml")
-    geantservice = G4SimSvc("G4SimSvc", detector=det, physicslist='G4FtfpBert', actions='G4FullSimActions')
-elif os.environ['SIMTYPE']=='gflash':
-    from Configurables import G4SimSvc, G4GdmlDetector, G4FastSimPhysicsList, G4FastSimActions, G4ParticleSmearSimple
-    smeartool = G4ParticleSmearSimple("Smear", sigma = 0.15)
-    actionstool = G4FastSimActions("Actions", smearing=smeartool)
-    physicslisttool = G4FastSimPhysicsList("Physics", fullphysics="G4FtfpBert")
-    geantservice = G4SimSvc("G4SimSvc", detector='G4DD4hepDetector', physicslist=physicslisttool, actions=actionstool)
+from Configurables import G4SimSvc, G4GdmlTestDetector
+det = G4GdmlTestDetector("G4GdmlTestDetector", gdml = "../data/gflashDetector.xml")
+geantservice = G4SimSvc("G4SimSvc", detector=det, physicslist='G4FtfpBert', actions='G4FullSimActions')
 
-from Configurables import G4SimAlg, G4SaveStandaloneCalHits
-savecaltool = G4SaveStandaloneCalHits("saveECalHits", caloType = "ECal")
+from Configurables import G4SimAlg, G4SaveTestCalHits
+savecaltool = G4SaveTestCalHits("saveECalHits", caloType = "ECal", OutputLevel = DEBUG)
 savecaltool.DataOutputs.caloClusters.Path = "caloClusters"
 savecaltool.DataOutputs.caloHits.Path = "caloHits"
-geantsim = G4SimAlg("G4SimAlg", outputs= ["G4SaveStandaloneCalHits/saveECalHits",
+geantsim = G4SimAlg("G4SimAlg", outputs= ["G4SaveTestCalHits/saveECalHits",
                                           "InspectHitsCollectionsTool"])
 geantsim.DataInputs.genParticles.Path="allGenParticles"
 
 from Configurables import FCCDataSvc, PodioOutput
 podiosvc = FCCDataSvc("EventDataSvc")
-out = PodioOutput("out", filename="gdml_"+os.environ['ENERGY']+"GeV_"+os.environ['SIMTYPE']+".root")
+out = PodioOutput("out", filename="gdml_"+os.environ['ENERGY']+"GeV_full.root")
 out.outputCommands = ["keep *"]
 
 # ApplicationMgr
@@ -52,7 +45,6 @@ from Configurables import ApplicationMgr
 ApplicationMgr( TopAlg = [gen, hepmc_converter, hepmc_dump, geantsim, out],
                 EvtSel = 'NONE',
                 EvtMax   = 1,
-                # order is important, as GeoSvc is needed by G4SimSvc
                 ExtSvc = [podiosvc, ppservice, geantservice],
                 OutputLevel=INFO
  )

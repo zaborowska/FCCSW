@@ -13,5 +13,8 @@ DD4hep::XML::Component getNodeByStrAttr(const DD4hep::XML::Handle_t& mother, con
 
 /// try to get attribute with double value, return defaultValue if attribute not found
 double getAttrValueWithFallback(const DD4hep::XML::Component& node, const std::string& attrName, const double& defaultValue);
+
+void dummy();
+
 }
 #endif

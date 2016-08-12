@@ -18,3 +18,6 @@ double det::getAttrValueWithFallback(const DD4hep::XML::Component& node, const s
     return defaultValue;
   }
 }
+void det::dummy(){
+  return;
+}

@@ -18,7 +18,8 @@ gaudi_install_headers(DetCommon)
 gaudi_add_library(DetCommon
                  src/*.cpp
                  INCLUDE_DIRS DD4hep ROOT Geant4
-                 LINK_LIBRARIES GaudiKernel DD4hep ROOT Geant4)
+                 LINK_LIBRARIES GaudiKernel DD4hep ROOT Geant4
+                 PUBLIC_HEADERS DetCommon)
 
 set(LIBRARY_OUTPUT_PATH ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 message(STATUS "LIBRARY_OUTPUT_PATH -> ${LIBRARY_OUTPUT_PATH}")

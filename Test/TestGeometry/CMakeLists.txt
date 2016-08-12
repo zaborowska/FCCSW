@@ -3,11 +3,11 @@
 ################################################################################
 gaudi_subdir(TestGeometry v1r0)
 
-gaudi_depends_on_subdirs(GaudiKernel FWCore Sim/SimG4Interface Sim/SimG4Common)
+gaudi_depends_on_subdirs(GaudiKernel FWCore Sim/SimG4Interface Sim/SimG4Common Detector/DetCommon Detector/DetInterface)
 
 find_package(Geant4)
 include(${Geant4_USE_FILE})
-find_package(DD4hep)
+find_package(DD4hep COMPONENTS DDSegmentation REQUIRED)
 find_package(ROOT COMPONENTS MathCore GenVector Geom REQUIRED)
 
 gaudi_install_headers(TestGeometry)
@@ -20,8 +20,8 @@ gaudi_add_library(TestGeometry
 
 gaudi_add_module(TestGeometryPlugins
                  src/components/*.cpp
-                 INCLUDE_DIRS Geant4 FWCore SimG4Interface SimG4Common TestGeometry
-                 LINK_LIBRARIES GaudiKernel FWCore Geant4 TestGeometry)
+                 INCLUDE_DIRS Geant4 FWCore SimG4Interface SimG4Common TestGeometry DetCommon DetInterface DD4hep
+                 LINK_LIBRARIES GaudiKernel FWCore Geant4 TestGeometry DetCommon ${DD4hep_COMPONENT_LIBRARIES})
 
 # set(CMAKE_MODULE_PATH  ${CMAKE_MODULE_PATH}  ${DD4hep_ROOT}/cmake )
 set(LIBRARY_OUTPUT_PATH ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})

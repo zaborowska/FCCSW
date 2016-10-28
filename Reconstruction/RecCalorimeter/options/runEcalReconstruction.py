@@ -19,8 +19,8 @@ calibcells = CalibrateCaloHitsTool("CalibrateCaloHitsTool",invSamplingFraction="
 
 from Configurables import CreateCaloCells
 createcells = CreateCaloCells("CreateCaloCells", 
-                              calibTool=calibcells, doCellCalibration=True,
-                              addCellNoise=True,filterCellNoise=False,
+                              calibTool=calibcells, doCellCalibration=True, 
+                              addCellNoise=True, filterCellNoise=False,
                               readoutName="ECalHitsPhiEta",numVolumesRemove=1,fieldNames=["system","ECAL_Cryo","bath","EM_barrel"],fieldValues=[5,1,1,1],
                               OutputLevel=INFO)
 createcells.DataInputs.hits.Path="ECalHits"

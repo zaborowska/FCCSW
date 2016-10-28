@@ -26,7 +26,7 @@ CreateCaloCells::CreateCaloCells(const std::string& name, ISvcLocator* svcLoc)
   declareProperty("calibTool",m_calibTool);
   declarePrivateTool(m_calibTool,"CalibrateCaloHitsTool");
   declareProperty("noiseTool",m_noiseTool);
-  declarePrivateTool(m_noiseTool,"NoiseCaloCellsTool");
+  declarePrivateTool(m_noiseTool,"NoiseCaloCellsComplexTool");
 
   declareProperty("doCellCalibration",m_doCellCalibration=true);
   declareProperty("addCellNoise",m_addCellNoise=true);

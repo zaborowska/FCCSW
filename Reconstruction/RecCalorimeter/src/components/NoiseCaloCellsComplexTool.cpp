@@ -90,14 +90,14 @@ void NoiseCaloCellsComplexTool::createRandomCellNoise(std::vector<fcc::CaloHit*>
       noisePerCell  = m_cellNoise;
     }
     else {
-      noisePerCell = getNoiseConstantPerCell(ecell->Core().Cellid);
+      noisePerCell = getNoiseConstantPerCell(ecell->core().cellId);
     }
     //Store random noise hits
     //Time=0 (out-of-time pile-up should be taken into account in the pile-up constants) - to be checked
     //info() << "noise per cell: " << noisePerCell << endmsg;
-    ecell->Core().Energy =  noisePerCell*m_gauss.shoot();
-    ecell->Core().Time = 0;
-    ecell->Core().Bits = 0;
+    ecell->core().energy =  noisePerCell*m_gauss.shoot();
+    ecell->core().time = 0;
+    ecell->core().bits = 0;
   }
 }
 
@@ -110,9 +110,9 @@ void NoiseCaloCellsComplexTool::filterCellNoise(std::vector<fcc::CaloHit*>& aCel
       noisePerCell  = m_cellNoise;
     }
     else {
-      noisePerCell = getNoiseConstantPerCell((*ecell)->Core().Cellid);
+      noisePerCell = getNoiseConstantPerCell((*ecell)->core().cellId);
     }
-    if ( (*ecell)->Core().Energy<m_filterThreshold*noisePerCell ) {
+    if ( (*ecell)->core().energy<m_filterThreshold*noisePerCell ) {
       aCells.erase(ecell);
     }
     else {
@@ -196,19 +196,19 @@ StatusCode NoiseCaloCellsComplexTool::initNoiseFromFile() {
 }
 
 
-double NoiseCaloCellsComplexTool::getNoiseConstantPerCell(int64_t aCellID) {
+double NoiseCaloCellsComplexTool::getNoiseConstantPerCell(int64_t aCellId) {
 
   double elecNoise = 0.;
   double pileupNoise = 0.;
 
   //Get cell coordinates: eta and radial layer
-  double cellEta = m_segmentation->eta(aCellID);
+  double cellEta = m_segmentation->eta(aCellId);
   // Take readout, bitfield from GeoSvc
   auto decoder = m_geoSvc->lcdd()->readout(m_readoutName).idSpec().decoder();
-  decoder->setValue(aCellID);
+  decoder->setValue(aCellId);
   unsigned cellLayer = (*decoder)[m_activeFieldName];
 
-  double cellR = det::utils::tubeDimensions(aCellID).x();
+  double cellR = det::utils::tubeDimensions(aCellId).x();
 
   //All histograms have same binning, all bins with same size
   //Using the histogram in the first layer to get the bin size

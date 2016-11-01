@@ -14,6 +14,7 @@ geoservice = GeoSvc("GeoSvc", detectors=[  'file:Detector/DetFCChhBaseline1/comp
                     OutputLevel = INFO)
 
 #Configure tools for calo reconstruction
+#Create calo cells
 from Configurables import CalibrateCaloHitsTool
 calibcells = CalibrateCaloHitsTool("CalibrateCaloHitsTool",invSamplingFraction="5.4")
 
@@ -25,6 +26,13 @@ createcells = CreateCaloCells("CreateCaloCells",
                               OutputLevel=INFO)
 createcells.DataInputs.hits.Path="ECalHits"
 createcells.DataOutputs.cells.Path="caloCells"
+
+#Create calo clusters
+#from Configurables import CreateCaloClusters
+#createclusters = CreateCaloClusters("CreateCaloClusters", 
+#                              OutputLevel=INFO)
+#createcells.DataInputs.hits.Path="celoCells"
+#createcells.DataOutputs.cells.Path="caloClusters"
 
 from Configurables import CreatePositionedHit
 positionhit = CreatePositionedHit("CreatePositionedHit", readoutName = "ECalHitsPhiEta",activeFieldName = "active_layer",activeVolumeName="LAr",numVolumesRemove="1")
@@ -38,6 +46,7 @@ out.outputCommands = ["keep *"]
 ApplicationMgr(
     TopAlg = [podioinput,
               createcells,
+#              createclusters,
               positionhit,
               out
               ],

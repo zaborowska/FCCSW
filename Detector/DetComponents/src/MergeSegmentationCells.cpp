@@ -1,4 +1,4 @@
-#include "MergeCells.h"
+#include "MergeSegmentationCells.h"
 
 // FCCSW
 #include "DetInterface/IGeoSvc.h"
@@ -9,24 +9,24 @@
 // DD4hep
 #include "DD4hep/LCDD.h"
 
-DECLARE_ALGORITHM_FACTORY(MergeCells)
+DECLARE_ALGORITHM_FACTORY(MergeSegmentationCells)
 
-MergeCells::MergeCells(const std::string& aName, ISvcLocator* aSvcLoc):
+MergeSegmentationCells::MergeSegmentationCells(const std::string& aName, ISvcLocator* aSvcLoc):
 GaudiAlgorithm(aName, aSvcLoc){
   declareInput("inhits", m_inHits,"hits/caloInHits");
   declareOutput("outhits", m_outHits,"hits/caloOutHits");
   declareProperty("readout", m_readoutName);
   declareProperty("identifier", m_idToMerge);
-  declareProperty("merge", m_numToMerge = 2);
+  declareProperty("merge", m_numToMerge = 0);
 }
 
-MergeCells::~MergeCells() {}
+MergeSegmentationCells::~MergeSegmentationCells() {}
 
-StatusCode MergeCells::initialize() {
+StatusCode MergeSegmentationCells::initialize() {
   if (GaudiAlgorithm::initialize().isFailure())
     return StatusCode::FAILURE;
-  if(m_idToMerge.empty()) {
-    error()<<"No identifier to merge specified."<<endmsg;
+  if (m_idToMerge.empty()) {
+    error() << "No identifier to merge specified." << endmsg;
     return StatusCode::FAILURE;
   }
   m_geoSvc = service ("GeoSvc");
@@ -36,8 +36,8 @@ StatusCode MergeCells::initialize() {
     return StatusCode::FAILURE;
   }
   // check if readout exists
-  if(m_geoSvc->lcdd()->readouts().find(m_readoutName) == m_geoSvc->lcdd()->readouts().end()) {
-    error()<<"Readout <<"<<m_readoutName<<">> does not exist."<<endmsg;
+  if (m_geoSvc->lcdd()->readouts().find(m_readoutName) == m_geoSvc->lcdd()->readouts().end()) {
+    error() << "Readout <<" << m_readoutName << ">> does not exist." << endmsg;
     return StatusCode::FAILURE;
   }
   auto readout = m_geoSvc->lcdd()->readout(m_readoutName);
@@ -48,32 +48,32 @@ StatusCode MergeCells::initialize() {
     [this](const std::pair<std::string, DD4hep::Geometry::IDDescriptor::Field>& field) {
       return bool(field.first.compare(m_idToMerge) == 0);
     });
-  if( itIdentifier == m_descriptor.fields().end()) {
-    error()<<"Identifier <<"<<m_idToMerge<<">> does not exist in the readout <<"<<m_readoutName<<">>"<<endmsg;
+  if ( itIdentifier == m_descriptor.fields().end()) {
+    error() << "Identifier  << " << m_idToMerge << ">> does not exist in the readout <<" << m_readoutName << ">>" << endmsg;
     return StatusCode::FAILURE;
   }
   // check if proper number of cells to be merged was given (>1 and odd for signed fields)
   // it'd be nice to get max num of cells and warn user if it's not multipicity
   if(m_numToMerge > std::pow(2,(*itIdentifier).second->width())) {
-    error()<<"It is not possible to merge more cells than the maximum number of cells."<<endmsg;
+    error() << "It is not possible to merge more cells than the maximum number of cells." << endmsg;
     return StatusCode::FAILURE;
   }
-  if(m_numToMerge < 2) {
-    error()<<"Number of cells to me merged must be larger than 1."<<endmsg;
+  if (m_numToMerge < 2) {
+    error() << "Number of cells to me merged must be larger than 1." << endmsg;
     return StatusCode::FAILURE;
   }
-  if((*itIdentifier).second->isSigned() && (m_numToMerge%2 == 0)) {
-    error()<<"If field is signed, merge can only be done for an odd number of cells"
-           <<"(to ensure that middle cell is centred at 0)."<<endmsg;
+  if ((*itIdentifier).second->isSigned() && (m_numToMerge%2 == 0)) {
+    error() << "If field is signed, merge can only be done for an odd number of cells"
+            << "(to ensure that middle cell is centred at 0)." << endmsg;
     return StatusCode::FAILURE;
   }
-  info()<<"Field description: "<<m_descriptor.fieldDescription()<<endmsg;
-  info()<<"Merging cells for identifier: "<<m_idToMerge<<endmsg;
-  info()<<"Number of adjacent cells to be merged: "<<m_numToMerge<<"\n"<<endmsg;
+  info() << "Field description: " << m_descriptor.fieldDescription() << endmsg;
+  info() << "Merging cells for identifier: " << m_idToMerge << endmsg;
+  info() << "Number of adjacent cells to be merged: " << m_numToMerge << "\n" << endmsg;
   return StatusCode::SUCCESS;
 }
 
-StatusCode MergeCells::execute() {
+StatusCode MergeSegmentationCells::execute() {
   const auto inHits = m_inHits.get();
   auto outHits = new fcc::CaloHitCollection();
 
@@ -105,6 +105,6 @@ StatusCode MergeCells::execute() {
   return StatusCode::SUCCESS;
 }
 
-StatusCode MergeCells::finalize() {
+StatusCode MergeSegmentationCells::finalize() {
   return GaudiAlgorithm::finalize();
 }

@@ -44,11 +44,11 @@ createcells.DataInputs.hits.Path="newECalHits"
 createcells.DataOutputs.cells.Path="caloCells"
 
 #Create calo clusters
-#from Configurables import CreateCaloClusters
-#createclusters = CreateCaloClusters("CreateCaloClusters", 
-#                              OutputLevel=INFO)
-#createcells.DataInputs.hits.Path="caloCells"
-#createcells.DataOutputs.cells.Path="caloClusters"
+from Configurables import CreateCaloClusters
+createclusters = CreateCaloClusters("CreateCaloClusters", 
+                              OutputLevel=INFO)
+createclusters.DataInputs.cells.Path="caloCells"
+createclusters.DataOutputs.clusters.Path="caloClusters"
 
 from Configurables import CreatePositionedHit
 positionhit = CreatePositionedHit("CreatePositionedHit", readoutName = "ECalHitsPhiEta",activeFieldName = "active_layer",activeVolumeName="LAr_sensitive")
@@ -63,7 +63,7 @@ ApplicationMgr(
     TopAlg = [podioinput,
               merge,
               createcells,
-#              createclusters,
+              createclusters,
               positionhit,
               out
               ],

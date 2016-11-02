@@ -21,7 +21,7 @@
  *  Topological clusters should be better for jets - not implemented yet
  *     
  *  @author Jana Faltova
- *  @date   2016-10
+ *  @date   2016-11
  *
  */
 

@@ -9,7 +9,7 @@ CreateCaloClusters::CreateCaloClusters(const std::string& name, ISvcLocator* svc
   declareOutput("clusters", m_clusters,"clusters");
 
   declareProperty("buildTowersTool",m_buildTowersTool);
-  declarePrivateTool(m_buildTowersTool,"BuildTowersTool");
+  declarePrivateTool(m_buildTowersTool,"BuildCaloTowersTool");
  
 }
 
@@ -27,12 +27,14 @@ StatusCode CreateCaloClusters::initialize() {
   info() << "CreateCaloClusters initialized" << endmsg;
   info() << "Cluster algorithm : " << "Sliding window" << endmsg;
  
+  
   //Initialization of various tools
   //Build calo towers
   if (!m_buildTowersTool.retrieve()) {
     error()<<"Unable to retrieve the build towers tool tool!!!"<<endmsg;
     return StatusCode::FAILURE;
   }
+  
   return sc;
 }
 

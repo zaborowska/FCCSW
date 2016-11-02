@@ -14,7 +14,7 @@
  *     -> easy navigation from one tower to another
  *
  *  @author Jana Faltova
- *  @date   2016-10
+ *  @date   2016-11
  */
 
 class BuildCaloTowersTool : public GaudiTool, virtual public IBuildCaloTowersTool  {
@@ -26,16 +26,13 @@ public:
 
   /** @brief  Calibrate Geant4 hit energy to EM scale
    */
-  virtual std::unordered_map<int, float> buildTowers(std::vector<fcc::CaloHit*>& aCells) final;
+  virtual std::unordered_map<int, float> buildTowers(const fcc::CaloHitCollection& aCells) final;
 
-  /*
 private:
-  
- /// Handle for calo hits (input collection)
-  DataHandle<fcc::CaloHitCollection> m_cells;
-  /// Handle for calo cells (output collection)
-  DataHandle<fcc::CaloClusterCollection> m_clusters;
-  */
+  /// DeltaEta size of the tower
+  double m_deltaEtaTower;
+  /// DeltePhi size of the tower
+  double m_deltaPhiTower;
 
 };
 

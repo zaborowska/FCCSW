@@ -6,7 +6,6 @@
 
 // our EDM
 #include "datamodel/CaloHitCollection.h"
-#include "datamodel/CaloHit.h"
 
 #include <unordered_map>
 #include <utility>  
@@ -26,7 +25,7 @@ public:
 
   /** @brief Tower presented by a segment in eta, phi (std::pair) and energy (float)
   */
-  virtual std::unordered_map<int, float> buildTowers(std::vector<fcc::CaloHit*>& aCells) = 0;
+  virtual std::unordered_map<int, float> buildTowers(const fcc::CaloHitCollection& aCells) = 0;
 };
 
 #endif /* RECINTERFACE_IBUILDCALOTOWERSTOOL_H */

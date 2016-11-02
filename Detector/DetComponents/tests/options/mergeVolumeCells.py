@@ -35,7 +35,7 @@ geantservice = SimG4Svc("SimG4Svc")
 from Configurables import SimG4Alg, SimG4SaveCalHits, InspectHitsCollectionsTool, SimG4PrimariesFromEdmTool
 inspecttool = InspectHitsCollectionsTool("inspect", readoutNames=["ECalHitsPhiEta"], OutputLevel = INFO)
 savecaltool = SimG4SaveCalHits("saveECalHits", readoutNames = ["ECalHitsPhiEta"], OutputLevel = DEBUG)
-savecaltool.DataOutputs.caloClusters.Path = "caloClusters"
+#savecaltool.DataOutputs.caloClusters.Path = "caloClusters"
 savecaltool.DataOutputs.caloHits.Path = "caloHits"
 particle_converter = SimG4PrimariesFromEdmTool("EdmConverter")
 geantsim = SimG4Alg("SimG4Alg", outputs= ["SimG4SaveCalHits/saveECalHits","InspectHitsCollectionsTool/inspect"], eventProvider=particle_converter)

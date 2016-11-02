@@ -20,9 +20,7 @@ CreatePositionedHit::CreatePositionedHit(const std::string& name, ISvcLocator* s
   declareOutput("caloPositionedHits", m_caloPositionedHits,"caloPositionedHits");
   declareProperty("readoutName", m_readoutName="ECalHitsNew");
   declareProperty("activeFieldName", m_activeFieldName="active_layer");
-  declareProperty("activeVolumeName", m_activeVolumeName="LAr");
-  //ECAL LAr specific: LAr bath in cryostat same material as active layer volume
-  declareProperty("numVolumesRemove",m_numVolumesRemove=1);
+  declareProperty("activeVolumeName", m_activeVolumeName="LAr_sensitive");
 }
 
 CreatePositionedHit::~CreatePositionedHit()
@@ -55,8 +53,10 @@ StatusCode CreatePositionedHit::initialize() {
 
   // Get the total number of active volumes in the geometry
   auto highestVol = gGeoManager->GetTopVolume();
-  //Substract volumes with same name as the active layers (e.g. ECAL: bath volume)
-  m_numLayers = det::utils::countPlacedVolumes(highestVol, m_activeVolumeName)-m_numVolumesRemove;
+  //Number of layers
+  //m_numLayers = det::utils::countPlacedVolumes(highestVol, m_activeVolumeName);
+  //TODO: read hardcoded number of layers from config file
+  m_numLayers = 3;
   debug() << "Number of active layers " << m_numLayers << endmsg;
 
   return sc;
@@ -71,9 +71,9 @@ StatusCode CreatePositionedHit::execute() {
   //Initialize output CaloClusterCollection
   auto edmPositionedHitCollection = m_caloPositionedHits.createAndPut();
 
-  //Intialize value of the half size in r
-  double r_cell_size_half = -1.;
-
+  //TODO: read hardcoded numbers from config file
+  double rCellMin = 270.;
+  int nActiveLayers[3]={22,83,11};
   auto decoder = m_geoSvc->lcdd()->readout(m_readoutName).idSpec().decoder();
   //Loop though CaloHits, calculate position from cellID, create and fill information in a CaloCluster
   for (const auto& ecells : *calocells) {
@@ -88,29 +88,40 @@ StatusCode CreatePositionedHit::execute() {
     //Next active layer [ needed for r_cell = middle of the cell (active + passive) ]
     //If half size of cell in r not known, calculate it from the next layer r-min
     decoder->setValue(ecells.core().cellId);
+    int layer = (*decoder)[m_activeFieldName].value();
+    if (layer>=m_numLayers) {
+      error()<<"More layers than expected!!!"<<endmsg;
+    }
+    //TODO: read hardcoded numbers from config file
+    //periodThickness*nActiveLayers/2
+    double rCell=rCellMin+nActiveLayers[layer]*0.6/2.0;
+
+    /*
     if (r_cell_size_half<0) {
-      if ((*decoder)[m_activeFieldName]<m_numLayers) {
-        (*decoder)[m_activeFieldName]=(*decoder)[m_activeFieldName]+1;
-        uint64_t cellID_next = decoder->getValue();
-        double rmin_layer_next = det::utils::tubeDimensions(cellID_next).x();
+      if ((*decoder)[m_activeFieldName]<(m_numLayers-1)) {
+	(*decoder)[m_activeFieldName] = (*decoder)[m_activeFieldName]+nActiveLayers[];
+        uint64_t cellId_next = decoder->getValue();
+        double rmin_layer_next = det::utils::tubeDimensions(cellId_next).x();
         r_cell_size_half = (rmin_layer_next - rmin_layer)*0.5;
       }
       else {
-        info() << "Cell size in r not defined!!!! " << endmsg;
+        error() << "Cell size in r not defined!!!! " << endmsg;
       }
     }
     //r_cell: middle of the cell (active + passive)
     double r_cell = rmin_layer+r_cell_size_half;
+    */
+
 
     //Global position of the cell
-    auto position =  m_segmentation->positionFromREtaPhi( r_cell, m_segmentation->eta(ecells.core().cellId), m_segmentation->phi(ecells.core().cellId) );
+    auto position =  m_segmentation->positionFromREtaPhi( rCell, m_segmentation->eta(ecells.core().cellId), m_segmentation->phi(ecells.core().cellId) );
     positionedHit.position().x = position.x()*10.;
     positionedHit.position().y = position.y()*10.;
     positionedHit.position().z = position.z()*10.;
 
     //Debug information about cells
     debug() << "cellID " << ecells.core().cellId <<" energy " << ecells.core().energy << " decoder: all fields "
-            << decoder->valueString() << " r " << r_cell << " eta " <<  m_segmentation->eta(ecells.core().cellId)
+            << decoder->valueString() << " r " << rCell << " eta " <<  m_segmentation->eta(ecells.core().cellId)
             << " phi " <<  m_segmentation->phi(ecells.core().cellId)<< endmsg;
   }
   debug() << "Output CaloCluster collection size: " << edmPositionedHitCollection->size() << endmsg;

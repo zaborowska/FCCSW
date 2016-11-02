@@ -218,25 +218,20 @@ double NoiseCaloCellsComplexTool::getNoiseConstantPerCell(int64_t aCellId) {
     double deltaEtaBin = (m_histoElecNoiseConst.at(index)->GetBinLowEdge(Nbins)+m_histoElecNoiseConst.at(index)->GetBinWidth(Nbins)-m_histoElecNoiseConst.at(index)->GetBinLowEdge(1))/Nbins;
     //find the eta bin for the cell
     int ibin = floor(TMath::Abs(cellEta)/deltaEtaBin)+1;
-    //Eta bins???? 5 bins in eta in segmentation, eta values -2, -1.5, -1., -0.5, 0, 0.5, 1.0, 1.5, 2.0
     if (ibin>Nbins) {
-      //info()<<"eta outside range of the histogram: " <<cellEta << " ibin " << ibin << endmsg;
+      error()<<"eta outside range of the histograms!"<<endmsg;
       ibin = Nbins;
     }
     //Check that there are not more layers than the constants are provided for
-    if (cellLayer<=m_histoElecNoiseConst.size()) {
-      elecNoise = m_histoElecNoiseConst.at(cellLayer-1)->GetBinContent(ibin);
+    if (cellLayer<m_histoElecNoiseConst.size()) {
+      elecNoise = m_histoElecNoiseConst.at(cellLayer)->GetBinContent(ibin);
       if (m_addPileup) {
-	pileupNoise = m_histoPileupConst.at(cellLayer-1)->GetBinContent(ibin);
+	pileupNoise = m_histoPileupConst.at(cellLayer)->GetBinContent(ibin);
       }
-      info() << "Cell eta " << cellEta << " radial layer " << cellLayer << " cell R "  << cellR <<" deltaEtaBin " << deltaEtaBin << " bin " << ibin << " elecNoise " << elecNoise << " pileup " << pileupNoise << endmsg;
+      debug() << "Cell eta " << cellEta << " radial layer " << cellLayer << " cell R "  << cellR <<" deltaEtaBin " << deltaEtaBin << " bin " << ibin << " elecNoise " << elecNoise << " pileup " << pileupNoise << endmsg;
     }
     else {
-      //warning() << "More radial layers than we have noise for!!!! Using the last layer for all histograms outside the range." << endmsg;
-      elecNoise = m_histoElecNoiseConst.at(m_histoElecNoiseConst.size()-1)->GetBinContent(ibin);
-      if (m_addPileup) {
-	pileupNoise = m_histoPileupConst.at(m_histoPileupConst.size()-1)->GetBinContent(ibin);
-      }
+      error() << "More radial layers than we have noise for!!!! Using the last layer for all histograms outside the range." << endmsg;
     }
   }
   else {
@@ -245,10 +240,6 @@ double NoiseCaloCellsComplexTool::getNoiseConstantPerCell(int64_t aCellId) {
 
   //Total noise: electronics noise + pileup 
   double totalNoise = TMath::Sqrt( TMath::Power(elecNoise,2)+ TMath::Power(pileupNoise,2));
-
-  if (cellLayer<=m_histoElecNoiseConst.size()) {
-    info() << "Cell noise " << totalNoise << endmsg;
-  }
 
   if (totalNoise<1e-3) {
     warning() << "Zero noise: cell eta " << cellEta << " layer " << cellLayer << " noise " << totalNoise << endmsg;

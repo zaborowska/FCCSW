@@ -34,9 +34,7 @@ CreateCaloCells::CreateCaloCells(const std::string& name, ISvcLocator* svcLoc)
 
   //PhiEta segmentation required
   declareProperty("readoutName", m_readoutName="ECalHitsPhiEta");
-  declareProperty("activeVolumeName", m_activeVolumeName="LAr");
-  //number of volumes with active material which are not readout
-  declareProperty("numVolumesRemove",m_numVolumesRemove=0);
+  declareProperty("activeVolumeName", m_activeVolumeName="LAr_sensitive");
   declareProperty("activeFieldName", m_activeFieldName="active_layer");
   declareProperty("fieldNames", m_fieldNames);
   declareProperty("fieldValues", m_fieldValues);
@@ -183,8 +181,10 @@ StatusCode CreateCaloCells::prepareEmptyCells(std::vector<fcc::CaloHit*>& caloCe
   }
   // Get the total number of active volumes in the geometry
   auto highestVol = gGeoManager->GetTopVolume();
-  // Substract volumes with active material which are not readout (e.g. ECAL: bath volume)
-  unsigned int numLayers = det::utils::countPlacedVolumes(highestVol, m_activeVolumeName)-m_numVolumesRemove;
+  // Number of radial layers
+  //unsigned int numLayers = det::utils::countPlacedVolumes(highestVol, m_activeVolumeName);
+  //TODO: read hardcoded number of layers from config file
+  unsigned int numLayers = 3;
   info() << "Number of active layers " << numLayers << endmsg;
 
   // Check if size of names and values of readout fields agree
@@ -203,7 +203,7 @@ StatusCode CreateCaloCells::prepareEmptyCells(std::vector<fcc::CaloHit*>& caloCe
     for(uint it=0; it<m_fieldNames.size(); it++) {
       (*decoder)[m_fieldNames[it]] = m_fieldValues[it];
     }
-    (*decoder)[m_activeFieldName] = ilayer+1;
+    (*decoder)[m_activeFieldName] = ilayer;
     uint64_t volumeId = decoder->getValue();
     
     debug()<<"Number of segmentation cells in (phi,eta): "<<det::utils::numberOfCells(volumeId, *segmentation)<<endmsg;

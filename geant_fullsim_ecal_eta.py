@@ -40,7 +40,7 @@ geantservice.G4commands += ["/run/setCut 0.1 mm"]
 # and a tool that saves the calorimeter hits 
 from Configurables import SimG4Alg, SimG4SaveCalHits
 saveecaltool = SimG4SaveCalHits("saveECalHits",readoutNames = ["ECalHitsPhiEta"])
-saveecaltool.DataOutputs.caloClusters.Path = "Event/ECalClusters"
+saveecaltool.DataOutputs.positionedCaloHits.Path = "Event/ECalPositionedHits"
 saveecaltool.DataOutputs.caloHits.Path = "Event/ECalHits"
 
 # next, create the G4 algorithm, giving the list of names of tools ("XX/YY")

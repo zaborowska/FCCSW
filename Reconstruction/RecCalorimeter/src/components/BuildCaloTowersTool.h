@@ -7,6 +7,23 @@
 // FCCSW
 #include "RecInterface/IBuildCaloTowersTool.h"
 
+// our EDM
+#include "datamodel/CaloHit.h"
+
+// FCCSW
+#include "DetSegmentation/GridPhiEta.h"
+class IGeoSvc;
+
+// DD4hep
+#include "DD4hep/Readout.h"
+namespace DD4hep {
+namespace DDSegmentation {
+  class Segmentation;
+}
+}
+// C++
+//#include <utility>  
+
 /** @class BuildCaloTowersTool
  *
  *  Tool for building calorimeter towers
@@ -28,11 +45,20 @@ public:
    */
   virtual std::unordered_map<int, float> buildTowers(const fcc::CaloHitCollection& aCells) final;
 
+  std::pair<int, int> findBin(const fcc::CaloHit& aCell, float& weight );
+
 private:
   /// DeltaEta size of the tower
-  double m_deltaEtaTower;
+  float m_deltaEtaTower;
   /// DeltePhi size of the tower
-  double m_deltaPhiTower;
+  float m_deltaPhiTower;
+  /// Name of the detector readout
+  std::string m_readoutName;
+  
+  /// Pointer to the geometry service
+  SmartIF<IGeoSvc> m_geoSvc;
+  /// PhiEta segmentation
+  DD4hep::DDSegmentation::GridPhiEta* m_segmentation;
 
 };
 

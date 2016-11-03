@@ -2,21 +2,20 @@ from Gaudi.Configuration import *
 
 from Configurables import ApplicationMgr, FCCDataSvc, PodioOutput
 
-podioevent   = FCCDataSvc("EventDataSvc")
+#podioevent   = FCCDataSvc("EventDataSvc", input="/afs/cern.ch/exp/fcc/sw/0.8pre/testsamples/output_ecalSim_e50GeV_eta0_10events.root")
+podioevent   = FCCDataSvc("EventDataSvc", input="output_ecalSim_e50GeV_eta0_10events.root") 
 
 # reads HepMC text file and write the HepMC::GenEvent to the data service
 from Configurables import PodioInput
-#podioinput = PodioInput("PodioReader", filename="/afs/cern.ch/exp/fcc/sw/0.8pre/testsamples/output_ecalSim_e50GeV_eta0_10events.root", collections=["ECalHits", "ECalPositionedHits"], OutputLevel=DEBUG)
-podioinput = PodioInput("PodioReader", filename="output_ecalSim_e50GeV_eta0_10events.root", collections=["ECalHits", "ECalPositionedHits"], OutputLevel=DEBUG)
-
+podioinput = PodioInput("PodioReader", collections=["ECalHits", "ECalPositionedHits"], OutputLevel=DEBUG)
 
 from Configurables import GeoSvc
 geoservice = GeoSvc("GeoSvc", detectors=[  'file:Detector/DetFCChhBaseline1/compact/FCChh_DectEmptyMaster.xml',
                                            'file:Detector/DetFCChhECalSimple/compact/FCChh_ECalBarrel_Mockup.xml'],
                     OutputLevel = INFO)
 
-from Configurables import MergeVolumeCells
-merge = MergeVolumeCells("mergeVolumeCells",
+from Configurables import MergeLayers
+merge = MergeLayers("mergeLayers",
                    # take the bitfield description from the geometry service
                    readout ="ECalHitsPhiEta",
                    # cells in which field should be merged
@@ -37,7 +36,7 @@ calibcells = CalibrateCaloHitsTool("CalibrateCaloHitsTool",invSamplingFraction="
 from Configurables import CreateCaloCells
 createcells = CreateCaloCells("CreateCaloCells",
                               calibTool=calibcells, doCellCalibration=True,
-                              addCellNoise=False,filterCellNoise=False,
+                              addCellNoise=True,filterCellNoise=False,
                               readoutName="ECalHitsPhiEta",fieldNames=["system","ECAL_Cryo","bath","EM_barrel"],fieldValues=[5,1,1,1],
                               OutputLevel=INFO)
 createcells.DataInputs.hits.Path="newECalHits"

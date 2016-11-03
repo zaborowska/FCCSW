@@ -44,6 +44,8 @@ StatusCode CreateCaloClusters::execute() {
   const fcc::CaloHitCollection* cells = m_cells.get();
   debug() << "Input Hit collection size: " << cells->size() << endmsg;
 
+  std::unordered_map<int,float> caloTowers = m_buildTowersTool->buildTowers(*cells);
+
   /*
   //Final vector of cells
   std::vector<fcc::CaloHit*> edmFinalCellsVector;

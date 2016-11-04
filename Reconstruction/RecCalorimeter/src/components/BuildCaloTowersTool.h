@@ -29,7 +29,10 @@ namespace DDSegmentation {
  *  Tool for building calorimeter towers
  *  Tower presented by a segment in eta, phi and energy (unordered_map)
  *     -> easy navigation from one tower to another
- *
+ *  The cell size cannot be larger than the tower size at the moment
+ *  TODO: split cell energy into more towers if cell size is larger than the tower!!!!!
+ *       - problem with merging 2 cells (eta[0]=0.0)
+ *       - probably have to shift the center of the cell, think about numbering of towers
  *  @author Jana Faltova
  *  @date   2016-11
  */
@@ -41,11 +44,13 @@ public:
   virtual StatusCode initialize() final;
   virtual StatusCode finalize() final;
 
-  /** @brief  Calibrate Geant4 hit energy to EM scale
+  /** @brief 
    */
-  virtual std::unordered_map<int, float> buildTowers(const fcc::CaloHitCollection& aCells) final;
+  virtual std::unordered_map<std::pair<int,int>, float, boost::hash<std::pair<int, int>>> buildTowers(const fcc::CaloHitCollection& aCells) final;
 
-  std::pair<int, int> findBin(const fcc::CaloHit& aCell, float& weight );
+  void findTower(const fcc::CaloHit& aCell, std::pair<int, int>& itower);
+
+
 
 private:
   /// DeltaEta size of the tower

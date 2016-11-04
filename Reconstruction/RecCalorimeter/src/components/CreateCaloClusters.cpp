@@ -1,5 +1,9 @@
 #include "CreateCaloClusters.h"
 
+#include <unordered_map>
+#include <utility>
+#include <boost/functional/hash.hpp>
+
 DECLARE_ALGORITHM_FACTORY(CreateCaloClusters)
 
 CreateCaloClusters::CreateCaloClusters(const std::string& name, ISvcLocator* svcLoc)
@@ -44,26 +48,14 @@ StatusCode CreateCaloClusters::execute() {
   const fcc::CaloHitCollection* cells = m_cells.get();
   debug() << "Input Hit collection size: " << cells->size() << endmsg;
 
-  std::unordered_map<int,float> caloTowers = m_buildTowersTool->buildTowers(*cells);
+  std::unordered_map<std::pair<int,int>, float, boost::hash<std::pair<int, int>>> caloTowers = m_buildTowersTool->buildTowers(*cells);
 
   /*
-  //Final vector of cells
-  std::vector<fcc::CaloHit*> edmFinalCellsVector;
-  */
-  /*
-  //Copy information from vector to CaloHitCollection
-  fcc::CaloHitCollection* edmCellsCollection = new fcc::CaloHitCollection();
-  for (auto ecells : edmFinalCellsVector) {
-    fcc::CaloHit newCell = edmCellsCollection->create();
-      newCell.Core().Energy = ecells->Core().Energy;     
-      newCell.Core().Time = ecells->Core().Time;
-      newCell.Core().Bits = ecells->Core().Bits;
-      newCell.Core().Cellid = ecells->Core().Cellid;
-  }
-  debug() << "Output Cell collection size: " << edmCellsCollection->size() << endmsg;
-  
-  //Push the CaloHitCollection to event store
-  m_cells.put(edmCellsCollection);
+  TODO: 
+  1/ sliding window above threshold
+  2/ overlapping windows removal
+  3/ position calculation
+  4/ final cluster formation
   */
 
   return StatusCode::SUCCESS;

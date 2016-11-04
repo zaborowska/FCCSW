@@ -36,16 +36,20 @@ calibcells = CalibrateCaloHitsTool("CalibrateCaloHitsTool",invSamplingFraction="
 from Configurables import CreateCaloCells
 createcells = CreateCaloCells("CreateCaloCells",
                               calibTool=calibcells, doCellCalibration=True,
-                              addCellNoise=True,filterCellNoise=False,
+                              addCellNoise=False,filterCellNoise=False,
                               readoutName="ECalHitsPhiEta",fieldNames=["system","ECAL_Cryo","bath","EM_barrel"],fieldValues=[5,1,1,1],
                               OutputLevel=INFO)
 createcells.DataInputs.hits.Path="newECalHits"
 createcells.DataOutputs.cells.Path="caloCells"
 
 #Create calo clusters
+from Configurables import BuildCaloTowersTool
+calotower = BuildCaloTowersTool("BuildCaloTowersTool",deltaEtaTower=0.01,deltaPhiTower=2*3.1415/628.0)
+
 from Configurables import CreateCaloClusters
-createclusters = CreateCaloClusters("CreateCaloClusters", 
-                              OutputLevel=INFO)
+createclusters = CreateCaloClusters("CreateCaloClusters",
+                                    buildTowersTool=calotower,
+                                    OutputLevel=DEBUG)
 createclusters.DataInputs.cells.Path="caloCells"
 createclusters.DataOutputs.clusters.Path="caloClusters"
 

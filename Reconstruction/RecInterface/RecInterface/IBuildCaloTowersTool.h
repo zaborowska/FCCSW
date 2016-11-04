@@ -9,6 +9,9 @@
 
 #include <unordered_map>
 #include <utility>  
+#include <boost/functional/hash.hpp>
+
+//using namespace boost;
 
 /** @class IBuildCaloTowersTool
  *
@@ -25,7 +28,8 @@ public:
 
   /** @brief Tower presented by a segment in eta, phi (std::pair) and energy (float)
   */
-  virtual std::unordered_map<int, float> buildTowers(const fcc::CaloHitCollection& aCells) = 0;
+  virtual std::unordered_map<std::pair<int,int>, float, boost::hash<std::pair<int, int>>> buildTowers(const fcc::CaloHitCollection& aCells) = 0;
+
 };
 
 #endif /* RECINTERFACE_IBUILDCALOTOWERSTOOL_H */

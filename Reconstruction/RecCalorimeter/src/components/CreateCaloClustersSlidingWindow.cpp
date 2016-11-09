@@ -27,7 +27,7 @@ StatusCode CreateCaloClustersSlidingWindow::initialize() {
   info() << "CreateCaloClustersSlidingWindow initialized" << endmsg;
   //Build calo towers
   if (!m_buildTowersTool.retrieve()) {
-    error()<<"Unable to retrieve the build towers tool tool!"<<endmsg;
+    error()<<"Unable to retrieve the build towers tool!"<<endmsg;
     return StatusCode::FAILURE;
   }
   return StatusCode::SUCCESS;
@@ -53,6 +53,5 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
 }
 
 StatusCode CreateCaloClustersSlidingWindow::finalize() {
-  StatusCode sc = GaudiAlgorithm::finalize();
-  return sc;
+  return GaudiAlgorithm::finalize();
 }

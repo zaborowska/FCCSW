@@ -97,14 +97,10 @@ private:
   float m_deltaEtaTower;
   /// Size of the tower in phi
   float m_deltaPhiTower;
-  /// ID of first tower in eta (calculated from m_deltaEtaTower and the eta size of the first layer)
-  int m_lowEtaTower;
-  /// ID of last tower in eta (calculated from m_deltaEtaTower and the eta size of the first layer)
-  int m_highEtaTower;
-  /// ID of first tower in phi (calculated from m_deltaPhiTower)
-  int m_lowPhiTower;
-  /// ID of last tower in phi (calculated from m_deltaPhiTower)
-  int m_highPhiTower;
+  /// number of towers in eta (calculated from m_deltaEtaTower and the eta size of the first layer)
+  int m_nEtaTower;
+  /// Number of towers in phi (calculated from m_deltaPhiTower)
+  int m_nPhiTower;
   /// Size of the window in eta for pre-clusters (in units of tower size)
   int m_nEtaWindow;
   /// Size of the window in phi for pre-clusters (in units of tower size)

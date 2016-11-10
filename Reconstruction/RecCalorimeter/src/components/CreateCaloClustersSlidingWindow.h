@@ -89,7 +89,8 @@ private:
   /// PhiEta segmentation
   DD4hep::DDSegmentation::GridPhiEta* m_segmentation;
   // calorimeter towers
-  std::unordered_map<std::pair<int,int>, float, boost::hash<std::pair<int, int>>> m_towers;
+  /* std::unordered_map<std::pair<int,int>, float, boost::hash<std::pair<int, int>>> m_towers; */
+  std::unordered_map<int, std::vector<float>> m_towers;
   /// Name of the detector readout
   std::string m_readoutName;
   /// Size of the tower in eta
@@ -108,10 +109,6 @@ private:
   int m_nEtaWindow;
   /// Size of the window in phi for pre-clusters (in units of tower size)
   int m_nPhiWindow;
-  /// Size of the window in eta for duplicate check (in units of tower size)
-  int m_nEtaDuplicate;
-  /// Size of the window in phi for duplicate check (in units of tower size)
-  int m_nPhiDuplicate;
   /// Energy threshold
   float m_energyThreshold;
 };

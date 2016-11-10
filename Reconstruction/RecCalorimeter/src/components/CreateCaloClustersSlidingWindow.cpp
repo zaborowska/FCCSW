@@ -28,15 +28,13 @@ CreateCaloClustersSlidingWindow::CreateCaloClustersSlidingWindow(const std::stri
   declareInput("cells", m_cells,"calo/cells");
   declareOutput("clusters", m_clusters,"calo/clusters");
   declareProperty("readoutName", m_readoutName="ECalHitsPhiEta");
-  declareProperty("energyThreshold", m_energyThreshold = 3);
   // size of tower
   declareProperty("deltaEtaTower", m_deltaEtaTower=0.01);
   declareProperty("deltaPhiTower", m_deltaPhiTower=2*Gaudi::Units::pi/628);
   // window size (in units of tower)
   declareProperty("nEtaWindow", m_nEtaWindow = 5);
   declareProperty("nPhiWindow", m_nPhiWindow = 5);
-  declareProperty("nEtaDuplicate", m_nEtaDuplicate = 2);
-  declareProperty("nPhiDuplicate", m_nPhiDuplicate = 2);
+  declareProperty("energyThreshold", m_energyThreshold = 3);
 }
 
 CreateCaloClustersSlidingWindow::~CreateCaloClustersSlidingWindow() {}
@@ -73,45 +71,63 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   buildTowers();
 
   warning()<<"TOWERS size: "<<m_towers.size()<<endmsg;
-  warning()<<"TOWERS expected size: "<<(m_highEtaTower - m_lowEtaTower + 1)*(m_highPhiTower - m_lowPhiTower + 1) <<endmsg;
 
   // 2. Find local maxima with sliding window
   std::unordered_map<std::pair<int,int>, float, boost::hash<std::pair<int, int>>> seeds;
-  double windowEnergy = 0;
-  for(int iEta = m_lowEtaTower + floor(m_nEtaWindow/2.); iEta <= m_highEtaTower - floor(m_nEtaWindow/2.); iEta++) {
-    for(int iPhi = m_lowPhiTower + floor(m_nPhiWindow/2.); iPhi <= m_highPhiTower - floor(m_nPhiWindow/2.); iPhi++) {
-      // calculate energy of each window
+  int halfEtaWin =  floor(m_nEtaWindow/2.);
+  int halfPhiWin =  floor(m_nPhiWindow/2.);
+  // calculate the sum of first m_nEtaWindow bins in eta, for each phi tower
+  const int nPhiTowers = m_highPhiTower-m_lowPhiTower+1;
+  std::vector<float> sumOverEta (nPhiTowers, 0);
+  for(int iEta = m_lowEtaTower; iEta < m_lowEtaTower + m_nEtaWindow; iEta++) {
+    std::transform (sumOverEta.begin(), sumOverEta.end(), m_towers[iEta].begin(), sumOverEta.begin(), std::plus<float>());
+  }
+  info()<<sumOverEta<<endmsg;
+
+  float sumWindow = 0;
+  // loop over all Eta slices
+  for(int iEta = m_lowEtaTower + halfEtaWin; iEta <= m_highEtaTower - halfEtaWin; iEta++) {
+    // check energies in all windows
+    for(int iPhi = halfPhiWin; iPhi <= nPhiTowers - halfPhiWin; iPhi++) {
       // TODO full phi coverage so it should start in low edge and end in high edge
-      for(int iEtaWindow = -floor(m_nEtaWindow/2.); iEtaWindow <= floor(m_nEtaWindow/2.); iEtaWindow++) {
-        for(int iPhiWindow = -floor(m_nPhiWindow/2.); iPhiWindow <= floor(m_nPhiWindow/2.); iPhiWindow++) {
-          windowEnergy += m_towers.find(std::pair<int,int>(iEta+iEtaWindow, iPhi+iPhiWindow))->second;
-        }
+      for(int iPhiWin = iPhi - halfPhiWin; iPhiWin <= iPhi + halfPhiWin; iPhiWin++) {
+        sumWindow += sumOverEta[iPhiWin];
       }
-      if(windowEnergy>3) {
-        seeds[std::make_pair(iEta,iPhi)] = windowEnergy;
-        //debug()<< "ieta,iphi " << iEta << ", "<< iPhi << " energy " << windowEnergy << endmsg;
+      if(sumWindow > m_energyThreshold) {
+        // test if it is a local maximum
+        // testMaximumInPhi()
+        // testMaximumInEta()
+        seeds[std::make_pair(iEta,iPhi)] = sumWindow;
       }
-      windowEnergy = 0;
+      sumWindow = 0;
+    }
+    if(iEta < m_highEtaTower - halfEtaWin) {
+      // end processing that slice, shift window to next eta tower
+      // substract first eta slice in current window
+      std::transform (sumOverEta.begin(), sumOverEta.end(), m_towers[iEta-halfEtaWin].begin(), sumOverEta.begin(), std::minus<float>());
+      // add next eta slice to the window
+      std::transform (sumOverEta.begin(), sumOverEta.end(), m_towers[iEta+halfEtaWin+1].begin(), sumOverEta.begin(), std::plus<float>());
     }
   }
-  warning()<<"SEEDs size: "<<seeds.size()<<endmsg;
+  debug()<<"SEEDS size: "<<seeds.size()<<endmsg;
 
   //              // TODO add caching of energy (not to repeat all sums)
-  //              // TODO add check for local maxima (check closest neighbours)
+  //              // TODO add check for local maximas (check closest neighbours)
 
   // 3. Calculate barycentre position
   std::unordered_map<std::pair<int,int>, float, boost::hash<std::pair<int, int>>> preclusters;
   float posEta = 0;
   float posPhi = 0;
   float sumEnergy = 0;
+  float towEnergy = 0;
   for(const auto& seed: seeds) {
-    for(int iEtaWindow = -floor(m_nEtaWindow/2.); iEtaWindow <= floor(m_nEtaWindow/2.); iEtaWindow++) {
-      for(int iPhiWindow = -floor(m_nPhiWindow/2.); iPhiWindow <= floor(m_nPhiWindow/2.); iPhiWindow++) {
-        posEta += (seed.first.first+iEtaWindow) * (m_towers.find(std::pair<int,int>(seed.first.first+iEtaWindow, seed.first.second+iPhiWindow))->second);
-        //warning()<<" eta += "<< (seed.first.first+iEtaWindow) <<" * "<<(m_towers.find(std::pair<int,int>(seed.first.first+iEtaWindow, seed.first.second+iPhiWindow))->second)<<endmsg;
-        //warning()<<" phi += "<< (seed.first.second+iPhiWindow) <<" * "<<(m_towers.find(std::pair<int,int>(seed.first.second+iPhiWindow, seed.first.second+iPhiWindow))->second)<<endmsg;
-        posPhi += (seed.first.second+iPhiWindow) * (m_towers.find(std::pair<int,int>(seed.first.first+iEtaWindow, seed.first.second+iPhiWindow))->second);
-        sumEnergy += m_towers.find(std::pair<int,int>(seed.first.first+iEtaWindow, seed.first.second+iPhiWindow))->second;
+    warning()<<"seed at: "<<seed.first.first<<" , "<< seed.first.second<<endmsg;
+    for(int iEta = seed.first.first-halfEtaWin; iEta <= seed.first.first+halfEtaWin; iEta++) {
+      for(int iPhi = seed.first.second-halfPhiWin; iPhi <= seed.first.second+halfPhiWin; iPhi++) {
+        towEnergy = m_towers[iEta][iPhi];
+        posEta += iEta * towEnergy;
+        posPhi += iPhi * towEnergy;
+        sumEnergy += towEnergy;
       }
     }
     posEta /= sumEnergy;
@@ -126,13 +142,12 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
     posPhi = 0;
     sumEnergy=0;
   }
-  warning()<<"PRECLUSTERS size: "<<preclusters.size()<<endmsg;
+  debug()<<"PRECLUSTERS size: "<<preclusters.size()<<endmsg;
 
   // 4. Remove duplicates
 
   // 5. Create final clusters
 
-  // temporary: write ID of eta to position.x, ID of phi to position.y and energy to position.z
   auto edmClusters = m_clusters.createAndPut();
   for(const auto& clu: preclusters) {
     auto edmCluster = edmClusters->create();
@@ -141,6 +156,17 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
     edmClusterCore.position.y = clu.first.second;
     edmClusterCore.position.z = clu.second;
   }
+  // for(const auto& clu: m_towers) {
+  //   for(uint i=0; i<clu.second.size(); i++) {
+  //     if(clu.second[i]>0) {
+  //       auto edmCluster = edmClusters->create();
+  //       auto& edmClusterCore = edmCluster.core();
+  //       edmClusterCore.position.x = clu.first;
+  //       edmClusterCore.position.y = i;
+  //       edmClusterCore.position.z = clu.second[i];
+  //     }
+  //   }
+  // }
   return StatusCode::SUCCESS;
 }
 
@@ -156,18 +182,8 @@ void CreateCaloClustersSlidingWindow::prepareTowers() {
   m_lowPhiTower = -1.*ceil((2*Gaudi::Units::pi-m_deltaPhiTower/2.)/m_deltaPhiTower);
   m_highPhiTower = ceil((2*Gaudi::Units::pi-m_deltaPhiTower/2.)/m_deltaPhiTower);
 
-  // warning()<<" cellID: "<<m_cells.get()->at(0).cellId()<<endmsg;
-  // warning()<<" volID: "<<m_segmentation->volumeID(m_cells.get()->at(0).cellId())<<endmsg;
-  // warning()<<"TUBE size: "<<tubeSizes<<endmsg;
-  // warning()<<"Eta size: "<<maxEta<<endmsg;
-  // warning()<<"Eta N bins : "<<m_highEtaTower - m_lowEtaTower + 1<<endmsg;
-  // warning()<<"PHi N bins : "<<m_highPhiTower - m_lowPhiTower + 1<<endmsg;
-
-  m_towers.reserve((m_highEtaTower - m_lowEtaTower)*(m_highPhiTower - m_lowPhiTower));
   for(int iEta = m_lowEtaTower; iEta <= m_highEtaTower; iEta++) {
-    for(int iPhi = m_lowPhiTower; iPhi <= m_highPhiTower; iPhi++) {
-      m_towers[std::make_pair(iEta,iPhi)] = 0;
-    }
+    m_towers[iEta].assign((m_highPhiTower - m_lowPhiTower + 1), 0);
   }
 }
 
@@ -223,7 +239,7 @@ void CreateCaloClustersSlidingWindow::findTower(const fcc::CaloHit& aCell, std::
   */
 
   aTower.first = floor(eta/m_deltaEtaTower);
-  aTower.second = floor(phi/m_deltaPhiTower);
+  aTower.second = floor(phi/m_deltaPhiTower) - m_lowPhiTower;
 
   // if (aCell.core().energy>100) {
   //   debug()<< "eta " << eta << " phi " << phi << " ibin "<< aTower.first << " , " << aTower.second << endmsg;

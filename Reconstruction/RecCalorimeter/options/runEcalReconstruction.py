@@ -3,7 +3,7 @@ from Gaudi.Configuration import *
 from Configurables import ApplicationMgr, FCCDataSvc, PodioOutput
 
 #podioevent   = FCCDataSvc("EventDataSvc", input="/afs/cern.ch/exp/fcc/sw/0.8pre/testsamples/output_ecalSim_e50GeV_eta0_10events.root")
-podioevent   = FCCDataSvc("EventDataSvc", input="output_ecalSim_e50GeV_eta0_10events.root") 
+podioevent   = FCCDataSvc("EventDataSvc", input="output_ecalSim_e50GeV_eta0_10events.root")
 
 # reads HepMC text file and write the HepMC::GenEvent to the data service
 from Configurables import PodioInput
@@ -43,12 +43,10 @@ createcells.DataInputs.hits.Path="newECalHits"
 createcells.DataOutputs.cells.Path="caloCells"
 
 #Create calo clusters
-from Configurables import BuildCaloTowersTool
-calotower = BuildCaloTowersTool("BuildCaloTowersTool",deltaEtaTower=0.01,deltaPhiTower=2*3.1415/628.0)
-
-from Configurables import CreateCaloClusters
-createclusters = CreateCaloClusters("CreateCaloClusters",
-                                    buildTowersTool=calotower,
+from Configurables import CreateCaloClustersSlidingWindow
+createclusters = CreateCaloClustersSlidingWindow("CreateCaloClusters",
+                                    deltaEtaTower=0.01,deltaPhiTower=2*3.1415/628.0,
+                                                 nEtaWindow = 5, nPhiWindow = 5,
                                     OutputLevel=DEBUG)
 createclusters.DataInputs.cells.Path="caloCells"
 createclusters.DataOutputs.clusters.Path="caloClusters"
@@ -71,7 +69,7 @@ ApplicationMgr(
               out
               ],
     EvtSel = 'NONE',
-    EvtMax   = 10,
+    EvtMax   = 1,
     ExtSvc = [podioevent, geoservice],
  )
 

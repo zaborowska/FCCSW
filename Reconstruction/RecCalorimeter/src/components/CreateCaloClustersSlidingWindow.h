@@ -60,6 +60,10 @@ public:
   StatusCode finalize();
 
 private:
+  /**  Prepare calorimeter towers.
+   *  Create map with towers for the calorimeter.
+   */
+  void prepareTowers();
   /**  Build calorimeter towers.
    *  Tower is segmented in eta and phi, with the energy from all layers.
    *  It is represented by a pair of IDs (IDeta, IDphi) and the energy.
@@ -68,10 +72,8 @@ private:
    *  TODO: split cell energy into more towers if cell size is larger than the tower
    *       - problem with merging 2 cells (eta[0]=0.0)
    *       - probably have to shift the center of the cell, think about numbering of towers
-   *  @param[in] aCells Input collection of cells
-   *  @return Towers
    */
-  std::unordered_map<std::pair<int,int>, float, boost::hash<std::pair<int, int>>> buildTowers(const fcc::CaloHitCollection& aCells);
+  void buildTowers();
   /**  Get the tower IDs in eta and phi.
    *   The position of a centre of the cell is checked and the ID is computed.
    *   @param[in] aCell Calorimeter cell
@@ -86,12 +88,32 @@ private:
   DataHandle<fcc::CaloClusterCollection> m_clusters;
   /// PhiEta segmentation
   DD4hep::DDSegmentation::GridPhiEta* m_segmentation;
+  // calorimeter towers
+  std::unordered_map<std::pair<int,int>, float, boost::hash<std::pair<int, int>>> m_towers;
   /// Name of the detector readout
   std::string m_readoutName;
   /// Size of the tower in eta
   float m_deltaEtaTower;
   /// Size of the tower in phi
   float m_deltaPhiTower;
+  /// ID of first tower in eta (calculated from m_deltaEtaTower and the eta size of the first layer)
+  int m_lowEtaTower;
+  /// ID of last tower in eta (calculated from m_deltaEtaTower and the eta size of the first layer)
+  int m_highEtaTower;
+  /// ID of first tower in phi (calculated from m_deltaPhiTower)
+  int m_lowPhiTower;
+  /// ID of last tower in phi (calculated from m_deltaPhiTower)
+  int m_highPhiTower;
+  /// Size of the window in eta for pre-clusters (in units of tower size)
+  int m_nEtaWindow;
+  /// Size of the window in phi for pre-clusters (in units of tower size)
+  int m_nPhiWindow;
+  /// Size of the window in eta for duplicate check (in units of tower size)
+  int m_nEtaDuplicate;
+  /// Size of the window in phi for duplicate check (in units of tower size)
+  int m_nPhiDuplicate;
+  /// Energy threshold
+  float m_energyThreshold;
 };
 
 #endif /* RECCALORIMETER_CREATECALOCLUSTERSSLIDINGWINDOW_H */

@@ -87,22 +87,28 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   float sumWindow = 0;
   // loop over all Eta slices
   for(int iEta = m_lowEtaTower + halfEtaWin; iEta <= m_highEtaTower - halfEtaWin; iEta++) {
-    // check energies in all windows
-    for(int iPhi = halfPhiWin; iPhi <= nPhiTowers - halfPhiWin; iPhi++) {
-      // TODO full phi coverage so it should start in low edge and end in high edge
-      for(int iPhiWin = iPhi - halfPhiWin; iPhiWin <= iPhi + halfPhiWin; iPhiWin++) {
-        sumWindow += sumOverEta[iPhiWin];
-      }
+    // one slice in eta = window, now only sum over window in phi
+    // TODO handle corner cases (full phi coverage)
+    // sum first window in phi
+    for(int iPhiWindow = 0; iPhiWindow <= 2*halfPhiWin; iPhiWindow++) {
+      sumWindow += sumOverEta[iPhiWindow];
+    }
+    for(int iPhi = halfPhiWin; iPhi < nPhiTowers - halfPhiWin; iPhi++) {
+      // if energy is over threshold, test if it is a local maximum
       if(sumWindow > m_energyThreshold) {
-        // test if it is a local maximum
-        // testMaximumInPhi()
-        // testMaximumInEta()
+        //TODO test local maximum in phi
+        //TODO test local maximum in eta
         seeds[std::make_pair(iEta,iPhi)] = sumWindow;
       }
-      sumWindow = 0;
+      // finish processing that window, shift window to the next phi tower
+      // substract first phi tower in current window
+      sumWindow -= sumOverEta[iPhi-halfPhiWin];
+      // add next phi tower to the window
+      sumWindow += sumOverEta[iPhi+halfPhiWin+1];
     }
+    sumWindow = 0;
+    // finish processing that slice, shift window to next eta tower
     if(iEta < m_highEtaTower - halfEtaWin) {
-      // end processing that slice, shift window to next eta tower
       // substract first eta slice in current window
       std::transform (sumOverEta.begin(), sumOverEta.end(), m_towers[iEta-halfEtaWin].begin(), sumOverEta.begin(), std::minus<float>());
       // add next eta slice to the window
@@ -112,7 +118,7 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   debug()<<"SEEDS size: "<<seeds.size()<<endmsg;
 
   //              // TODO add caching of energy (not to repeat all sums)
-  //              // TODO add check for local maximas (check closest neighbours)
+  //              // TODO add check for local maxima (check closest neighbours)
 
   // 3. Calculate barycentre position
   std::unordered_map<std::pair<int,int>, float, boost::hash<std::pair<int, int>>> preclusters;
@@ -149,7 +155,7 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   // 5. Create final clusters
 
   auto edmClusters = m_clusters.createAndPut();
-  for(const auto& clu: preclusters) {
+  for(const auto& clu: seeds) {
     auto edmCluster = edmClusters->create();
     auto& edmClusterCore = edmCluster.core();
     edmClusterCore.position.x = clu.first.first;
@@ -192,33 +198,13 @@ void CreateCaloClustersSlidingWindow::buildTowers() {
   const fcc::CaloHitCollection* cells = m_cells.get();
   debug() << "Input Hit collection size: " << cells->size() << endmsg;
   //Loop through a collection of calorimeter cells and build calo towers (unordered_map)
-  float weight = 1.0;
 
   for (const auto& ecell : *cells) {
     //Find to which tower the cell belongs (defined by index ieta and iphi)
     std::pair<int, int> ibin;
     findTower(ecell, ibin);
-    auto it = m_towers.find(ibin);
-    //Weight cell energy (cell size bigger than tower size -> cell energy divided between more towers) -> TODO
-    // if (ecell.core().energy>100) {
-    //   debug()<< "ibin "<< ibin.first << " , " << ibin.second << " weight " << weight << endmsg;
-    // }
-    float cellEnergy = ecell.core().energy;
-    //If the tower does not exist, add a new one
-    if (it == m_towers.end()) {
-      m_towers[ibin] = cellEnergy;
-      warning()<<"creating new one!"<<endmsg;
-    }
-    //If the tower exists, add the energy in the tower
-    else {
-      it->second += cellEnergy;
-    }
+    m_towers[ibin.first][ibin.second] = ecell.core().energy;
   }
-  // for (auto it : m_towers) {
-  //   if (it.second>500) {
-  //     debug()<< "ieta,iphi " << it.first << " energy " << it.second << endmsg;
-  //   }
-  // }
   return;
 }
 

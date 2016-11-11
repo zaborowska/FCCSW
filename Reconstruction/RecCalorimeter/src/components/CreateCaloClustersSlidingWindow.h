@@ -24,6 +24,24 @@ namespace DDSegmentation {
 }
 }
 
+// Cluster object
+struct cluster {
+  int ieta;
+  int iphi;
+  float transEnergy;
+  float eta;
+  float phi;
+};
+
+// Sort
+struct compareCluster {
+  inline bool operator() (const cluster* struct1, const cluster* struct2)
+    {
+        return (struct1->transEnergy > struct2->transEnergy);
+    }
+};
+
+
 /** @class CreateCaloClustersSlidingWindow
  *
  *  Algorithm for creating calorimeter clusters from cells.
@@ -80,6 +98,11 @@ private:
    *   @param[out] aTower ID (eta,phi) of a tower
    */
   void findTower(const fcc::CaloHit& aCell, std::pair<int, int>& aTower);
+
+  void prepareTestTowers();
+
+  void buildTestTowers();
+
   /// Pointer to the geometry service
   SmartIF<IGeoSvc> m_geoSvc;
   /// Handle for calo cells (input collection)
@@ -105,8 +128,20 @@ private:
   int m_nEtaWindow;
   /// Size of the window in phi for pre-clusters (in units of tower size)
   int m_nPhiWindow;
+  /// Size of the window in eta for position calculation (in units of tower size)
+  int m_nEtaPosition;
+  /// Size of the window in phi for position calculation (in units of tower size)
+  int m_nPhiPosition;
+ /// Size of the window in eta for the overlap removal (in units of tower size)
+  int m_nEtaDuplicates;
+  /// Size of the window in phi for the overlap removal (in units of tower size)
+  int m_nPhiDuplicates;
   /// Energy threshold
   float m_energyThreshold;
+
+  /// Vector of clusters
+  std::vector<cluster*> m_preClusters;
+
 };
 
 #endif /* RECCALORIMETER_CREATECALOCLUSTERSSLIDINGWINDOW_H */

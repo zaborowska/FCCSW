@@ -181,9 +181,10 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   }
   debug()<<"PRECLUSTERS size after duplicates removal: "<<m_preClusters.size()<<endmsg;
 
+  //TODO: If m_nEtaDuplicates < m_nEtaWindow, we have to divide energy between two clusters to avoid double counting.
 
   // 6. Create final clusters
-
+  //TODO: Fill proper information with energy in proper window
   auto edmClusters = m_clusters.createAndPut();
   for(const auto clu: m_preClusters) {
     auto edmCluster = edmClusters->create();

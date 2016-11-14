@@ -100,7 +100,10 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
 
   // loop over all Eta slices starting at the half of the first window
   float sumWindow = 0;
-  float sumWindowTmp = 0;
+  float sumPhiSlicePrevEtaWin = 0;
+  float sumPhiSliceNextEtaWin = 0;
+  float sumFirstPhiSlice = 0;
+  float sumLastPhiSlice = 0;
   bool toRemove = false;
   for(int iEta = halfEtaWin; iEta < m_nEtaTower - halfEtaWin; iEta++) {
     // one slice in eta = window, now only sum over window in phi
@@ -125,24 +128,24 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
         // test local maximum in eta (if it wasn't already marked as to be removed)
         if(m_checkEtaLocalMax && (!toRemove) ) {
           // check closest neighbour on the right
-          for(int iPhiWindow2 = iPhi - halfPhiWin; iPhiWindow2 <= iPhi+halfPhiWin; iPhiWindow2++) {
-            for(int iEtaWindow2 = iEta - halfEtaWin+1; iEtaWindow2 <= iEta + halfEtaWin+1; iEtaWindow2++) {
-              sumWindowTmp += m_towers[iEtaWindow2][iPhiWindow2];
-            }
+          for(int iPhiWindowLocalCheck = iPhi - halfPhiWin; iPhiWindowLocalCheck <= iPhi+halfPhiWin; iPhiWindowLocalCheck++) {
+            sumPhiSlicePrevEtaWin += m_towers[iEta - halfEtaWin - 1][iPhiWindowLocalCheck];
+            sumLastPhiSlice += m_towers[iEta + halfEtaWin][iPhiWindowLocalCheck];
           }
-          if(sumWindowTmp > sumWindow) {
+          if(sumPhiSlicePrevEtaWin > sumLastPhiSlice) {
             toRemove = true;
           }
-          sumWindowTmp = 0;
-          for(int iPhiWindow2 = iPhi - halfPhiWin; iPhiWindow2 <= iPhi+halfPhiWin; iPhiWindow2++) {
-            for(int iEtaWindow2 = iEta - halfEtaWin-1; iEtaWindow2 <= iEta + halfEtaWin-1; iEtaWindow2++) {
-              sumWindowTmp += m_towers[iEtaWindow2][iPhiWindow2];
-            }
+          for(int iPhiWindowLocalCheck = iPhi - halfPhiWin; iPhiWindowLocalCheck <= iPhi+halfPhiWin; iPhiWindowLocalCheck++) {
+            sumPhiSliceNextEtaWin += m_towers[iEta + halfEtaWin + 1][iPhiWindowLocalCheck];
+            sumFirstPhiSlice += m_towers[iEta - halfEtaWin][iPhiWindowLocalCheck];
           }
-          if(sumWindowTmp > sumWindow) {
+          if(sumPhiSliceNextEtaWin > sumFirstPhiSlice) {
             toRemove = true;
           }
-          sumWindowTmp = 0;
+          sumFirstPhiSlice = 0;
+          sumLastPhiSlice = 0;
+          sumPhiSlicePrevEtaWin = 0;
+          sumPhiSliceNextEtaWin = 0;
         }
         if (!toRemove) {
           // Build precluster

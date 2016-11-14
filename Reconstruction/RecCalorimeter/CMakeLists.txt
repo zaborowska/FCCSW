@@ -26,5 +26,9 @@ gaudi_add_test(genJetClustering
 
 gaudi_add_test(runEcalReconstruction
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-               ENVIRONMENT LD_PRELOAD+=build.$BINARY_TAG/lib/libDetSegmentation.so	
+               ENVIRONMENT LD_PRELOAD+=build.$BINARY_TAG/lib/libDetSegmentation.so
                FRAMEWORK options/runEcalReconstruction.py)
+gaudi_add_test(checkClusters
+               ENVIRONMENT PYTHONPATH+=$ENV{PODIO}/python
+               COMMAND python Reconstruction/RecCalorimeter/scripts/checkClusters.py
+               DEPENDS runEcalReconstruction)

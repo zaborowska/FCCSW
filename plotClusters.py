@@ -1,5 +1,6 @@
 from EventStore import EventStore
 import sys
+from math import ceil
 from ROOT import gSystem, TFile, TH2D, TCanvas,TPaveText, TF2, gStyle
 
 store = EventStore("output_ecalReco_test.root")
@@ -31,10 +32,10 @@ for ix in range (179,182):
         print (ix,iy)
         sumEn += hECal.GetBinContent(ix,iy)
 print("Energy in 3x3 centre  ",sumEn/hECal.Integral())
-print("Total energy: ",hECal.Integral()/1000, "GeV")
+print("Total energy: ",hECal.Integral(), "GeV")
 pt1 = TPaveText(0.1,0.8,0.5,0.9,"brNDC")
 pt1.SetFillColorAlpha(0,1)
-pt1.AddText("#color["+str(4)+"]{energy: "+str(int(hECal.Integral()))+" GeV}")
+pt1.AddText("#color["+str(4)+"]{energy: "+str(int(ceil(hECal.Integral())))+" GeV}")
 # pt1.AddText("#color["+str(4)+"]{en in 3x3: "+str(int(sumEn/hECal.Integral()))+" %}")
 pt1.Draw()
 canv.Update()

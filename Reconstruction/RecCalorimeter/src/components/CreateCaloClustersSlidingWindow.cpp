@@ -98,14 +98,18 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   float sumFirstPhiSlice = 0;
   float sumLastPhiSlice = 0;
   bool toRemove = false;
+  // one slice in eta = window, now only sum over window in phi
   for(int iEta = halfEtaWin; iEta < m_nEtaTower - halfEtaWin; iEta++) {
-    // one slice in eta = window, now only sum over window in phi
-    // TODO handle corner cases (full phi coverage)
-    // sum first window in phi
-    for(int iPhiWindow = 0; iPhiWindow <= 2*halfPhiWin; iPhiWindow++) {
+    // sum first window in phi - full phi coverage so start with phi bins at the end...
+    for(int iPhiWindow = m_nPhiTower - halfPhiWin; iPhiWindow < m_nPhiTower; iPhiWindow++) {
       sumWindow += sumOverEta[iPhiWindow];
     }
-    for(int iPhi = halfPhiWin; iPhi < m_nPhiTower - halfPhiWin ; iPhi++) {
+    // ... and add first bins
+    for(int iPhiWindow = 0; iPhiWindow <= halfPhiWin; iPhiWindow++) {
+      sumWindow += sumOverEta[iPhiWindow];
+    }
+    // loop over all the phi slices
+    for(int iPhi = 0; iPhi < m_nPhiTower; iPhi++) {
       if(sumWindow > m_energyThreshold) {
         // test local maximum in phi
         if(m_checkPhiLocalMax) {
@@ -158,9 +162,7 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
             newPreCluster.eta = posEta;
             newPreCluster.phi = posPhi;
             newPreCluster.transEnergy = sumWindow;
-            newPreCluster.ieta = iEta;
-            newPreCluster.iphi = iPhi;
-            debug()<<"PRECLUSTERS: "<<newPreCluster.ieta << " " << newPreCluster.iphi<< " "<<newPreCluster.eta <<" "<<newPreCluster.phi<<" "<<newPreCluster.transEnergy<<endmsg;
+            debug()<<"PRECLUSTERS: "<<newPreCluster.eta <<" "<<newPreCluster.phi<<" "<<newPreCluster.transEnergy<<endmsg;
             m_preClusters.push_back(newPreCluster);
           }
           posEta = 0;
@@ -169,12 +171,24 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
         }
       }
       toRemove = false;
-      if(iPhi< m_nPhiTower - halfPhiWin - 1) {
+      if(iPhi >= halfPhiWin && iPhi < m_nPhiTower - halfPhiWin - 1) {
         // finish processing that window, shift window to the next phi tower
         // substract first phi tower in current window
         sumWindow -= sumOverEta[iPhi-halfPhiWin];
         // add next phi tower to the window
         sumWindow += sumOverEta[iPhi+halfPhiWin+1];
+      }  else if (iPhi < halfPhiWin) {
+        // for windows at the lower edge of phi
+        // substract first phi tower in current window
+        sumWindow -= sumOverEta[iPhi-halfPhiWin+m_nPhiTower];
+        // add next phi tower to the window
+        sumWindow += sumOverEta[iPhi+halfPhiWin+1];
+      } else {
+        // for windows at the upper edge of phi
+        // substract first phi tower in current window
+        sumWindow -= sumOverEta[iPhi-halfPhiWin];
+        // add next phi tower to the window
+        sumWindow += sumOverEta[iPhi+halfPhiWin+1-m_nPhiTower];
       }
     }
     sumWindow = 0;
@@ -249,34 +263,35 @@ void CreateCaloClustersSlidingWindow::buildTowers() {
   debug() << "Input Hit collection size: " << cells->size() << endmsg;
   //Loop through a collection of calorimeter cells and build calo towers (unordered_map)
 
+  int iPhi = 0, iEta = 0;
+  float eta = 0;
   for (const auto& ecell : *cells) {
-    //Find to which tower the cell belongs (defined by index ieta and iphi)
-    std::pair<int, int> ibin;
-    findTower(ecell, ibin);
-    //save ET
-    m_towers[ibin.first][ibin.second] += ecell.core().energy/cosh(m_segmentation->eta(ecell.core().cellId));
-
-    /*
-    auto it = m_towerCells.find(ibin);
-    //If the tower does not exist, add a new one and add the cell reference
-    if (it == m_towerCells.end()) {
-      (m_towerCells[ibin]).push_back(ecell);
-    }
-    //If the tower exists, add the cell reference
-    else {
-      (it->second).push_back(ecell);
-    }
-    */
+    // find to which tower the cell belongs (defined by index ieta and iphi)
+    eta = m_segmentation->eta(ecell.core().cellId);
+    iEta = idEta(eta);
+    iPhi = idPhi(m_segmentation->phi(ecell.core().cellId));
+    // save transverse energy
+    m_towers[iEta][iPhi] += ecell.core().energy/cosh(eta);
   }
   return;
 }
 
-void CreateCaloClustersSlidingWindow::findTower(const fcc::CaloHit& aCell, std::pair<int, int>& aTower) {
-  //cell coordinates
-  float eta = m_segmentation->eta(aCell.core().cellId);
-  float phi = m_segmentation->phi(aCell.core().cellId);
-
+int CreateCaloClustersSlidingWindow::idEta(float aEta) {
   // shift Ids so they start at 0 (segmentation returns IDs that may be from -N to N)
-  aTower.first = floor(eta/m_deltaEtaTower) + (m_nEtaTower-1)/2;
-  aTower.second = floor(phi/m_deltaPhiTower) + (m_nPhiTower-1)/2;
+  return floor(aEta/m_deltaEtaTower) + (m_nEtaTower-1)/2;
+}
+
+int CreateCaloClustersSlidingWindow::idPhi(float aPhi) {
+  // shift Ids so they start at 0 (segmentation returns IDs that may be from -N to N)
+  return floor(aPhi/m_deltaPhiTower) + (m_nPhiTower-1)/2;
+}
+
+float CreateCaloClustersSlidingWindow::eta(float aIdEta) {
+  // middle of the tower
+  return (aIdEta - (m_nEtaTower-1)/2 + 0.5) * m_deltaEtaTower;
+}
+
+float CreateCaloClustersSlidingWindow::phi(float aIdPhi) {
+  // middle of the tower
+  return (aIdPhi - (m_nPhiTower-1)/2 + 0.5) * m_deltaPhiTower;
 }

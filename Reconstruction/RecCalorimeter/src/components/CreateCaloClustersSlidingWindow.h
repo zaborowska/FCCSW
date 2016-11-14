@@ -31,8 +31,6 @@ namespace DDSegmentation {
 
 // Cluster object
 struct cluster {
-  int ieta;
-  int iphi;
   float transEnergy;
   float eta;
   float phi;
@@ -97,16 +95,26 @@ private:
    *       - probably have to shift the center of the cell, think about numbering of towers
    */
   void buildTowers();
-  /**  Get the tower IDs in eta and phi.
-   *   The position of a centre of the cell is checked and the ID is computed.
-   *   @param[in] aCell Calorimeter cell
-   *   @param[out] aTower ID (eta,phi) of a tower
+  /**  Get the tower IDs in eta.
+   *   @param[in] aEta Position of the calorimeter cell in eta
+   *   @return ID (eta) of a tower
    */
-  void findTower(const fcc::CaloHit& aCell, std::pair<int, int>& aTower);
-
-  void prepareTestTowers();
-
-  void buildTestTowers();
+  int idEta(float aEta);
+  /**  Get the tower IDs in phi.
+   *   @param[in] aPhi Position of the calorimeter cell in phi
+   *   @return ID (phi) of a tower
+   */
+  int idPhi(float aPhi);
+  /**  Get the eta position of the centre of the tower.
+   *   @param[in] aIdEta ID (eta) of a tower
+   *   @return Position of the centre of the tower
+   */
+  float eta(float aIdEta);
+  /**  Get the phi position of the centre of the tower.
+   *   @param[in] aIdPhi ID (phi) of a tower
+   *   @return Position of the centre of the tower
+   */
+  float phi(float aIdPhi);
 
   /// Pointer to the geometry service
   SmartIF<IGeoSvc> m_geoSvc;
@@ -155,8 +163,6 @@ private:
   bool m_checkEtaLocalMax;
   /// Vector of clusters
   std::vector<cluster> m_preClusters;
-  /// Map: ieta, iphi, cell
-  //std::unordered_map<std::pair<int,int>, std::vector<const fcc::CaloHit&>, boost::hash<std::pair<int, int>>> m_towerCells;
 
 };
 

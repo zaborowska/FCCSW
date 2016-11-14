@@ -1,18 +1,11 @@
 #include "CreateCaloClustersSlidingWindow.h"
 
-#include <unordered_map>
-#include <utility>
-#include <boost/functional/hash.hpp>
-
 // FCCSW
 #include "DetInterface/IGeoSvc.h"
 #include "DetCommon/DetUtils.h"
 
 // Gaudi
 #include "GaudiKernel/PhysicalConstants.h"
-
-// Root
-#include "TMath.h"
 
 // datamodel
 #include "datamodel/CaloHitCollection.h"
@@ -217,7 +210,7 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   for(auto it1 = m_preClusters.begin(); it1!=m_preClusters.end(); it1++) {
     debug()<<(*it1).eta << " "<<(*it1).phi<<" "<< (*it1).transEnergy <<endmsg;
     for(auto it2 = it1+1; it2!=m_preClusters.end();) {
-      if ( (TMath::Abs((*it1).eta-(*it2).eta)<(m_nEtaDuplicates*m_deltaEtaTower)) && (TMath::Abs((*it1).phi-(*it2).phi)<(m_nPhiDuplicates*m_deltaPhiTower)) ) {
+      if ( (fabs((*it1).eta-(*it2).eta)<(m_nEtaDuplicates*m_deltaEtaTower)) && (fabs((*it1).phi-(*it2).phi)<(m_nPhiDuplicates*m_deltaPhiTower)) ) {
         it2 = m_preClusters.erase(it2);
       }
       else {
@@ -233,17 +226,17 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   // 6. Create final clusters
   auto tubeSizes = det::utils::tubeDimensions(m_segmentation->volumeID(m_cells.get()->at(0).cellId()));
   double rDetector = tubeSizes.x();
-  double theta = 0.;
   // TODO attach cells to built clusters
   auto edmClusters = m_clusters.createAndPut();
   for(const auto clu: m_preClusters) {
     auto edmCluster = edmClusters->create();
     auto& edmClusterCore = edmCluster.core();
-    theta = 2.*atan(exp(-1.*clu.eta));
-    edmClusterCore.position.x = rDetector * sin(theta) * cos(clu.phi);
-    edmClusterCore.position.x = rDetector * sin(theta) * sin(clu.phi);
-    edmClusterCore.position.x = rDetector * cos(theta);
-    edmClusterCore.energy = clu.transEnergy; // saving transverse energy
+    edmClusterCore.position.x = rDetector * cos(clu.phi);
+    edmClusterCore.position.y = rDetector * sin(clu.phi);
+    edmClusterCore.position.z = rDetector * sinh(clu.eta);
+    edmClusterCore.energy = clu.transEnergy * cosh(clu.eta); // saving energy
+    debug() << "Cluster x: " << edmClusterCore.position.x << " y " <<  edmClusterCore.position.y << " z "<<  edmClusterCore.position.z << " energy " << edmClusterCore.energy <<endmsg;
+
   }
 
   return StatusCode::SUCCESS;
@@ -278,7 +271,18 @@ void CreateCaloClustersSlidingWindow::buildTowers() {
     iEta = idEta(eta);
     iPhi = idPhi(m_segmentation->phi(ecell.core().cellId));
     // save transverse energy
-    m_towers[iEta][iPhi] += ecell.core().energy/TMath::CosH(eta);
+    m_towers[iEta][iPhi] += ecell.core().energy/cosh(eta);
+    /*
+    auto it = m_towerCells.find(ibin);
+    //If the tower does not exist, add a new one and add the cell reference
+    if (it == m_towerCells.end()) {
+      (m_towerCells[ibin]).push_back(ecell);
+    }
+    //If the tower exists, add the cell reference
+    else {
+      (it->second).push_back(ecell);
+    }
+    */
   }
   return;
 }

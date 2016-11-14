@@ -2,7 +2,6 @@ from Gaudi.Configuration import *
 
 from Configurables import ApplicationMgr, FCCDataSvc, PodioOutput
 
-#podioevent   = FCCDataSvc("EventDataSvc", input="/afs/cern.ch/exp/fcc/sw/0.8pre/testsamples/output_ecalSim_e50GeV_eta0_10events.root")
 podioevent   = FCCDataSvc("EventDataSvc", input="output_ecalSim_e50GeV_eta0_10events.root")
 
 # reads HepMC text file and write the HepMC::GenEvent to the data service
@@ -48,7 +47,9 @@ from GaudiKernel.PhysicalConstants import pi
 createclusters = CreateCaloClustersSlidingWindow("CreateCaloClusters",
                                     deltaEtaTower=0.01,deltaPhiTower=2*pi/628.0,
                                                  nEtaWindow = 5, nPhiWindow = 5,
-                                    OutputLevel=DEBUG)
+                                                 nEtaPosition = 3, nPhiPosition = 3,
+                                                 nEtaDuplicates = 2, nPhiDuplicates = 2,
+                                                 OutputLevel=DEBUG)
 createclusters.DataInputs.cells.Path="caloCells"
 createclusters.DataOutputs.clusters.Path="caloClusters"
 

@@ -84,9 +84,7 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
 
   // loop over all Eta slices starting at the half of the first window
   float sumWindow = 0;
-  warning()<<"RANGE: "<<halfEtaWin<<"; "<< m_nEtaTower - halfEtaWin - 1<<endmsg;
   for(int iEta = halfEtaWin; iEta < m_nEtaTower - halfEtaWin; iEta++) {
-    info()<<"iEta = "<<iEta<<endmsg;
     // one slice in eta = window, now only sum over window in phi
     // TODO handle corner cases (full phi coverage)
     // sum first window in phi
@@ -94,12 +92,19 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
       sumWindow += sumOverEta[iPhiWindow];
     }
     for(int iPhi = halfPhiWin; iPhi < m_nPhiTower - halfPhiWin ; iPhi++) {
-      if(iEta == 2)
-        info()<<"    iPhi = "<<iPhi<<endmsg;
       // if energy is over threshold, test if it is a local maximum
       if(sumWindow > m_energyThreshold) {
-        //TODO test local maximum in phi
-        //TODO test local maximum in eta
+        // check closest neighbour on the right
+        if(sumOverEta[iPhi-halfPhiWin] < sumOverEta[iPhi+halfPhiWin+1]) {
+          info()<<"Removing seed at "<<iEta<<" , "<<iPhi<<" as the diff next - first > 0:\t first = "<<sumOverEta[iPhi-halfPhiWin]<<"\tnext = "<<sumOverEta[iPhi+halfPhiWin+1]<<endmsg;
+          continue ;
+        }
+        // check closest neighbour on the left
+        if(sumOverEta[iPhi+halfPhiWin] < sumOverEta[iPhi-halfPhiWin-1]) {
+          info()<<"Removing seed at "<<iEta<<" , "<<iPhi<<" as the diff last - prev < 0:\t prev = "<<sumOverEta[iPhi-halfPhiWin-1]<<"\tlast = "<<sumOverEta[iPhi+halfPhiWin]<<endmsg;
+          continue;
+        }
+        //TODO test local maximum in eta - more complex, need to take a look at map
         seeds[std::make_pair(iEta,iPhi)] = sumWindow;
       }
       if(iPhi< m_nPhiTower - halfPhiWin - 1) {
@@ -208,25 +213,6 @@ void CreateCaloClustersSlidingWindow::buildTowers() {
   }
   return;
 }
-
-void CreateCaloClustersSlidingWindow::prepareTestTowers() {
-  m_nEtaTower = 20;
-  m_nPhiTower = 20;
-
-  for(int iEta = 0; iEta < m_nEtaTower; iEta++) {
-    m_towers[iEta].assign(m_nPhiTower, 0);
-  }
-}
-
-void CreateCaloClustersSlidingWindow::buildTestTowers() {
-  m_towers[10][15] = 5000;
-  m_towers[1][15] = 5000;
-  m_towers[7][7] = 3000;
-  m_towers[16][6] = 3000;
-  m_towers[17][1] = 7000;
-  return;
-}
-
 
 void CreateCaloClustersSlidingWindow::findTower(const fcc::CaloHit& aCell, std::pair<int, int>& aTower) {
   //cell coordinates

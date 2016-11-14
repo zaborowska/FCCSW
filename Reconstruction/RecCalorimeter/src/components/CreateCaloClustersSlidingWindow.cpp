@@ -40,8 +40,10 @@ CreateCaloClustersSlidingWindow::CreateCaloClustersSlidingWindow(const std::stri
   declareProperty("nPhiDuplicates", m_nPhiDuplicates = 2);
   declareProperty("nEtaObject", m_nEtaObject = 5);
   declareProperty("nPhiObject", m_nPhiObject = 5);
-  declareProperty("energyThreshold", m_energyThreshold = 3000);
-  declareProperty("energyPosThreshold", m_energyPosThreshold = 100);
+  declareProperty("energyThreshold", m_energyThreshold = 3);
+  declareProperty("energyPosThreshold", m_energyPosThreshold = 0.1);
+  declareProperty("checkPhiLocalMax", m_checkPhiLocalMax = true);
+  declareProperty("checkEtaLocalMax", m_checkEtaLocalMax = true);
 }
 
 CreateCaloClustersSlidingWindow::~CreateCaloClustersSlidingWindow() {}
@@ -91,13 +93,15 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   float posEta = 0;
   float posPhi = 0;
   float sumEnergyPos = 0;
- 
+
   for(int iEta = 0; iEta < m_nEtaWindow; iEta++) {
     std::transform (sumOverEta.begin(), sumOverEta.end(), m_towers[iEta].begin(), sumOverEta.begin(), std::plus<float>());
   }
 
   // loop over all Eta slices starting at the half of the first window
   float sumWindow = 0;
+  float sumWindowTmp = 0;
+  bool toRemove = false;
   for(int iEta = halfEtaWin; iEta < m_nEtaTower - halfEtaWin; iEta++) {
     // one slice in eta = window, now only sum over window in phi
     // TODO handle corner cases (full phi coverage)
@@ -108,43 +112,67 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
     for(int iPhi = halfPhiWin; iPhi < m_nPhiTower - halfPhiWin ; iPhi++) {
       if(sumWindow > m_energyThreshold) {
         // test local maximum in phi
-        // check closest neighbour on the right
-        if(sumOverEta[iPhi-halfPhiWin] < sumOverEta[iPhi+halfPhiWin+1]) {
-          info()<<"Removing seed at "<<iEta<<" , "<<iPhi<<" as the diff next - first > 0:\t first = "<<sumOverEta[iPhi-halfPhiWin]<<"\tnext = "<<sumOverEta[iPhi+halfPhiWin+1]<<endmsg;
-          continue ;
-        }
-        // check closest neighbour on the left
-        if(sumOverEta[iPhi+halfPhiWin] < sumOverEta[iPhi-halfPhiWin-1]) {
-          info()<<"Removing seed at "<<iEta<<" , "<<iPhi<<" as the diff last - prev < 0:\t prev = "<<sumOverEta[iPhi-halfPhiWin-1]<<"\tlast = "<<sumOverEta[iPhi+halfPhiWin]<<endmsg;
-          continue;
-        }
-        //TODO test local maximum in eta
-        // Build precluster
-        // Calculate barycentre position (smaller window used to reduce noise influence)
-        for(int ipEta = iEta-halfEtaPos; ipEta <= iEta+halfEtaPos; ipEta++) {
-          for(int ipPhi = iPhi-halfPhiPos; ipPhi <= iPhi+halfPhiPos; ipPhi++) {
-            posEta += (ipEta - m_nEtaTower/2. )* m_deltaEtaTower  * m_towers[ipEta][ipPhi];
-            posPhi += (ipPhi - m_nPhiTower/2. )* m_deltaPhiTower * m_towers[ipEta][ipPhi];
-            sumEnergyPos += m_towers[ipEta][ipPhi];
+        if(m_checkPhiLocalMax) {
+          // check closest neighbour on the right
+          if(sumOverEta[iPhi-halfPhiWin] < sumOverEta[iPhi+halfPhiWin+1]) {
+            toRemove = true;
+          }
+          // check closest neighbour on the left
+          if(sumOverEta[iPhi+halfPhiWin] < sumOverEta[iPhi-halfPhiWin-1]) {
+            toRemove = true;
           }
         }
-        //If non-zero energy in the cluster, add to pre-clusters (reduced size for pos. calculation -> energy in the core can be zero)
-        if (sumEnergyPos>m_energyPosThreshold) {
-          posEta /= sumEnergyPos;
-          posPhi /= sumEnergyPos;
-          cluster newPreCluster;
-          newPreCluster.eta = posEta;
-          newPreCluster.phi = posPhi;
-          newPreCluster.transEnergy = sumWindow;
-          newPreCluster.ieta = iEta;
-          newPreCluster.iphi = iPhi;
-          //debug()<<"PRECLUSTERS: "<<newPreCluster.ieta << " " << newPreCluster.iphi<< " "<<newPreCluster.eta <<" "<<newPreCluster.phi<<" "<<newPreCluster.transEnergy<<endmsg;
-          m_preClusters.push_back(newPreCluster);
+        // test local maximum in eta (if it wasn't already marked as to be removed)
+        if(m_checkEtaLocalMax && (!toRemove) ) {
+          // check closest neighbour on the right
+          for(int iPhiWindow2 = iPhi - halfPhiWin; iPhiWindow2 <= iPhi+halfPhiWin; iPhiWindow2++) {
+            for(int iEtaWindow2 = iEta - halfEtaWin+1; iEtaWindow2 <= iEta + halfEtaWin+1; iEtaWindow2++) {
+              sumWindowTmp += m_towers[iEtaWindow2][iPhiWindow2];
+            }
+          }
+          if(sumWindowTmp > sumWindow) {
+            toRemove = true;
+          }
+          sumWindowTmp = 0;
+          for(int iPhiWindow2 = iPhi - halfPhiWin; iPhiWindow2 <= iPhi+halfPhiWin; iPhiWindow2++) {
+            for(int iEtaWindow2 = iEta - halfEtaWin-1; iEtaWindow2 <= iEta + halfEtaWin-1; iEtaWindow2++) {
+              sumWindowTmp += m_towers[iEtaWindow2][iPhiWindow2];
+            }
+          }
+          if(sumWindowTmp > sumWindow) {
+            toRemove = true;
+          }
+          sumWindowTmp = 0;
         }
-        posEta = 0;
-        posPhi = 0;
-        sumEnergyPos = 0;
+        if (!toRemove) {
+          // Build precluster
+          // Calculate barycentre position (smaller window used to reduce noise influence)
+          for(int ipEta = iEta-halfEtaPos; ipEta <= iEta+halfEtaPos; ipEta++) {
+            for(int ipPhi = iPhi-halfPhiPos; ipPhi <= iPhi+halfPhiPos; ipPhi++) {
+              posEta += (ipEta - m_nEtaTower/2. )* m_deltaEtaTower  * m_towers[ipEta][ipPhi];
+              posPhi += (ipPhi - m_nPhiTower/2. )* m_deltaPhiTower * m_towers[ipEta][ipPhi];
+              sumEnergyPos += m_towers[ipEta][ipPhi];
+            }
+          }
+          // If non-zero energy in the cluster, add to pre-clusters (reduced size for pos. calculation -> energy in the core can be zero)
+          if (sumEnergyPos>m_energyPosThreshold) {
+            posEta /= sumEnergyPos;
+            posPhi /= sumEnergyPos;
+            cluster newPreCluster;
+            newPreCluster.eta = posEta;
+            newPreCluster.phi = posPhi;
+            newPreCluster.transEnergy = sumWindow;
+            newPreCluster.ieta = iEta;
+            newPreCluster.iphi = iPhi;
+            debug()<<"PRECLUSTERS: "<<newPreCluster.ieta << " " << newPreCluster.iphi<< " "<<newPreCluster.eta <<" "<<newPreCluster.phi<<" "<<newPreCluster.transEnergy<<endmsg;
+            m_preClusters.push_back(newPreCluster);
+          }
+          posEta = 0;
+          posPhi = 0;
+          sumEnergyPos = 0;
+        }
       }
+      toRemove = false;
       if(iPhi< m_nPhiTower - halfPhiWin - 1) {
         // finish processing that window, shift window to the next phi tower
         // substract first phi tower in current window
@@ -162,10 +190,7 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
       std::transform (sumOverEta.begin(), sumOverEta.end(), m_towers[iEta+halfEtaWin+1].begin(), sumOverEta.begin(), std::plus<float>());
     }
   }
-  debug()<<"PRECLUSTERS size: "<<m_preClusters.size()<<endmsg; 
-
-  //              // TODO add caching of energy (not to repeat all sums)
-  //              // TODO add check for local maxima (check closest neighbours)
+  debug()<<"PRECLUSTERS size: "<<m_preClusters.size()<<endmsg;
 
   // 4. Sort the preclusters according to the energy
   std::sort(m_preClusters.begin(),m_preClusters.end(),compareCluster());

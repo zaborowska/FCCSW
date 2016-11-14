@@ -45,10 +45,11 @@ createcells.DataOutputs.cells.Path="caloCells"
 from Configurables import CreateCaloClustersSlidingWindow
 from GaudiKernel.PhysicalConstants import pi
 createclusters = CreateCaloClustersSlidingWindow("CreateCaloClusters",
-                                    deltaEtaTower=0.01,deltaPhiTower=2*pi/628.0,
+                                                 deltaEtaTower=0.01,deltaPhiTower=2*pi/628.0,
                                                  nEtaWindow = 5, nPhiWindow = 5,
                                                  nEtaPosition = 3, nPhiPosition = 3,
                                                  nEtaDuplicates = 2, nPhiDuplicates = 2,
+                                                 checkPhiLocalMax = True, checkEtaLocalMax = True,
                                                  OutputLevel=DEBUG)
 createclusters.DataInputs.cells.Path="caloCells"
 createclusters.DataOutputs.clusters.Path="caloClusters"

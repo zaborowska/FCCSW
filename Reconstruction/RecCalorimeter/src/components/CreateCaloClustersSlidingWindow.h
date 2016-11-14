@@ -4,6 +4,11 @@
 // GAUDI
 #include "GaudiAlg/GaudiAlgorithm.h"
 
+// C++
+#include <unordered_map>
+#include <utility>
+#include <boost/functional/hash.hpp>
+
 // FCCSW
 #include "FWCore/DataHandle.h"
 #include "DetSegmentation/GridPhiEta.h"
@@ -150,6 +155,8 @@ private:
   bool m_checkEtaLocalMax;
   /// Vector of clusters
   std::vector<cluster> m_preClusters;
+  /// Map: ieta, iphi, cell
+  //std::unordered_map<std::pair<int,int>, std::vector<const fcc::CaloHit&>, boost::hash<std::pair<int, int>>> m_towerCells;
 
 };
 

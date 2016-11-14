@@ -26,8 +26,6 @@ namespace DDSegmentation {
 
 // Cluster object
 struct cluster {
-  int ieta;
-  int iphi;
   float transEnergy;
   float eta;
   float phi;

@@ -169,9 +169,7 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
             newPreCluster.eta = posEta;
             newPreCluster.phi = posPhi;
             newPreCluster.transEnergy = sumWindow;
-            newPreCluster.ieta = idEta(posEta);
-            newPreCluster.iphi = idPhi(posPhi);
-            debug()<<"PRECLUSTERS: "<<newPreCluster.ieta << " " << newPreCluster.iphi<< " "<<newPreCluster.eta <<" "<<newPreCluster.phi<<" "<<newPreCluster.transEnergy<<endmsg;
+            debug()<<"PRECLUSTERS: "<<newPreCluster.eta <<" "<<newPreCluster.phi<<" "<<newPreCluster.transEnergy<<endmsg;
             m_preClusters.push_back(newPreCluster);
           }
           posEta = 0;

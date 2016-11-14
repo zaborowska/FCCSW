@@ -212,13 +212,11 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   // 6. Create final clusters
   auto tubeSizes = det::utils::tubeDimensions(m_segmentation->volumeID(m_cells.get()->at(0).cellId()));
   double rDetector = tubeSizes.x();
-  double theta = 0.;
   // TODO attach cells to built clusters
   auto edmClusters = m_clusters.createAndPut();
   for(const auto clu: m_preClusters) {
     auto edmCluster = edmClusters->create();
     auto& edmClusterCore = edmCluster.core();
-    //theta = 2.*atan(exp(-1.*clu.eta));
     edmClusterCore.position.x = rDetector * cos(clu.phi);
     edmClusterCore.position.y = rDetector * sin(clu.phi);
     edmClusterCore.position.z = rDetector * sinh(clu.eta);

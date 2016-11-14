@@ -272,17 +272,6 @@ void CreateCaloClustersSlidingWindow::buildTowers() {
     iPhi = idPhi(m_segmentation->phi(ecell.core().cellId));
     // save transverse energy
     m_towers[iEta][iPhi] += ecell.core().energy/cosh(eta);
-    /*
-    auto it = m_towerCells.find(ibin);
-    //If the tower does not exist, add a new one and add the cell reference
-    if (it == m_towerCells.end()) {
-      (m_towerCells[ibin]).push_back(ecell);
-    }
-    //If the tower exists, add the cell reference
-    else {
-      (it->second).push_back(ecell);
-    }
-    */
   }
   return;
 }

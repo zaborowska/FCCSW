@@ -163,8 +163,6 @@ private:
   bool m_checkEtaLocalMax;
   /// Vector of clusters
   std::vector<cluster> m_preClusters;
-  /// Map: ieta, iphi, cell
-  //std::unordered_map<std::pair<int,int>, std::vector<const fcc::CaloHit&>, boost::hash<std::pair<int, int>>> m_towerCells;
 
 };
 

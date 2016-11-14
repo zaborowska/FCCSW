@@ -105,14 +105,20 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   float sumFirstPhiSlice = 0;
   float sumLastPhiSlice = 0;
   bool toRemove = false;
+  // one slice in eta = window, now only sum over window in phi
   for(int iEta = halfEtaWin; iEta < m_nEtaTower - halfEtaWin; iEta++) {
-    // one slice in eta = window, now only sum over window in phi
-    // TODO handle corner cases (full phi coverage)
-    // sum first window in phi
-    for(int iPhiWindow = 0; iPhiWindow <= 2*halfPhiWin; iPhiWindow++) {
+    // sum first window in phi - full phi coverage so start with phi bins at the end...
+    for(int iPhiWindow = m_nPhiTower - halfPhiWin; iPhiWindow < m_nPhiTower; iPhiWindow++) {
+      if(iEta == halfEtaWin) info()<<" SUMMING BIN: "<<iPhiWindow<<endmsg;
       sumWindow += sumOverEta[iPhiWindow];
     }
-    for(int iPhi = halfPhiWin; iPhi < m_nPhiTower - halfPhiWin ; iPhi++) {
+    // ... and add first bins
+    for(int iPhiWindow = 0; iPhiWindow <= halfPhiWin; iPhiWindow++) {
+      if(iEta == halfEtaWin) info()<<" SUMMING BIN: "<<iPhiWindow<<endmsg;
+      sumWindow += sumOverEta[iPhiWindow];
+    }
+    // loop over all the phi slices
+    for(int iPhi = 0; iPhi < m_nPhiTower; iPhi++) {
       if(sumWindow > m_energyThreshold) {
         // test local maximum in phi
         if(m_checkPhiLocalMax) {
@@ -176,12 +182,24 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
         }
       }
       toRemove = false;
-      if(iPhi< m_nPhiTower - halfPhiWin - 1) {
+      if(iPhi > halfPhiWin + 1 && iPhi < m_nPhiTower - halfPhiWin - 1) {
         // finish processing that window, shift window to the next phi tower
         // substract first phi tower in current window
         sumWindow -= sumOverEta[iPhi-halfPhiWin];
         // add next phi tower to the window
         sumWindow += sumOverEta[iPhi+halfPhiWin+1];
+      }  else if (iPhi < halfPhiWin) {
+        // for windows at the lower edge of phi
+        // substract first phi tower in current window
+        sumWindow -= sumOverEta[iPhi-halfPhiWin+m_nPhiTower];
+        // add next phi tower to the window
+        sumWindow += sumOverEta[iPhi+halfPhiWin+1];
+      } else {
+        // for windows at the upper edge of phi
+        // substract first phi tower in current window
+        sumWindow -= sumOverEta[iPhi-halfPhiWin];
+        // add next phi tower to the window
+        sumWindow += sumOverEta[iPhi+halfPhiWin+1-m_nPhiTower];
       }
     }
     sumWindow = 0;

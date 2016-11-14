@@ -214,14 +214,19 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   //TODO: If m_nEtaDuplicates < m_nEtaWindow, we have to divide energy between two clusters to avoid double counting.
 
   // 6. Create final clusters
-  //TODO: Fill proper information with energy in proper window
+  auto tubeSizes = det::utils::tubeDimensions(m_segmentation->volumeID(m_cells.get()->at(0).cellId()));
+  double rDetector = tubeSizes.x();
+  double theta = 0.;
+  // TODO attach cells to built clusters
   auto edmClusters = m_clusters.createAndPut();
   for(const auto clu: m_preClusters) {
     auto edmCluster = edmClusters->create();
     auto& edmClusterCore = edmCluster.core();
-    edmClusterCore.position.x = clu.ieta;
-    edmClusterCore.position.y = clu.iphi;
-    edmClusterCore.position.z = clu.transEnergy;
+    theta = 2.*atan(exp(-1.*clu.eta));
+    edmClusterCore.position.x = rDetector * sin(theta) * cos(clu.phi);
+    edmClusterCore.position.x = rDetector * sin(theta) * sin(clu.phi);
+    edmClusterCore.position.x = rDetector * cos(theta);
+    edmClusterCore.energy = clu.transEnergy; // saving transverse energy
   }
 
   return StatusCode::SUCCESS;

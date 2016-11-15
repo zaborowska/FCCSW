@@ -48,20 +48,32 @@ createclusters = CreateCaloClustersSlidingWindow("CreateCaloClusters",
                                                  deltaEtaTower=0.01,deltaPhiTower=2*pi/628.0,
                                                  nEtaWindow = 5, nPhiWindow = 5,
                                                  nEtaPosition = 3, nPhiPosition = 3,
-                                                 nEtaDuplicates = 2, nPhiDuplicates = 2,
+                                                 nEtaDuplicates = 5, nPhiDuplicates = 5,
                                                  checkPhiLocalMax = True, checkEtaLocalMax = True,
                                                  OutputLevel=DEBUG)
 createclusters.DataInputs.cells.Path="caloCells"
 createclusters.DataOutputs.clusters.Path="caloClusters"
 
 from Configurables import CreatePositionedHit
-positionhit = CreatePositionedHit("CreatePositionedHit", readoutName = "ECalHitsPhiEta",activeFieldName = "active_layer",activeVolumeName="LAr_sensitive")
+positionhit = CreatePositionedHit("CreatePositionedHit", readoutName = "ECalHitsPhiEta",activeFieldName = "active_layer",activeVolumeName="LAr_sensitive", OutputLevel=INFO)
 positionhit.DataInputs.caloCells.Path="caloCells"
 positionhit.DataOutputs.caloPositionedHits.Path="caloCellsPositions"
+
 
 out = PodioOutput("out", filename="output_ecalReco_test.root",
                    OutputLevel=DEBUG)
 out.outputCommands = ["keep *"]
+
+#CPU information
+from Configurables import AuditorSvc, ChronoAuditor
+chra = ChronoAuditor()
+audsvc = AuditorSvc()
+audsvc.Auditors = [chra]
+podioinput.AuditExecute = True
+createclusters.AuditExecute = True
+createcells.AuditExecute = True
+positionhit.AuditExecute = True
+
 
 ApplicationMgr(
     TopAlg = [podioinput,

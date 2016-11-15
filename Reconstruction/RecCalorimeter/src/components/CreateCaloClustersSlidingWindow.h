@@ -109,12 +109,12 @@ private:
    *   @param[in] aIdEta ID (eta) of a tower
    *   @return Position of the centre of the tower
    */
-  float eta(float aIdEta);
+  float eta(int aIdEta);
   /**  Get the phi position of the centre of the tower.
    *   @param[in] aIdPhi ID (phi) of a tower
    *   @return Position of the centre of the tower
    */
-  float phi(float aIdPhi);
+  float phi(int aIdPhi);
 
   /// Pointer to the geometry service
   SmartIF<IGeoSvc> m_geoSvc;

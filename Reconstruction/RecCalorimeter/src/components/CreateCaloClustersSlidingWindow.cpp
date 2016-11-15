@@ -224,19 +224,28 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   // 6. Create final clusters
   auto tubeSizes = det::utils::tubeDimensions(m_segmentation->volumeID(m_cells.get()->at(0).cellId()));
   double rDetector = tubeSizes.x();
-  // TODO attach cells to built clusters
   auto edmClusters = m_clusters.createAndPut();
+  const fcc::CaloHitCollection* cells = m_cells.get();
+  float etaCell=0, phiCell=0;
   for(const auto clu: m_preClusters) {
     auto edmCluster = edmClusters->create();
     auto& edmClusterCore = edmCluster.core();
     edmClusterCore.position.x = rDetector * cos(clu.phi);
     edmClusterCore.position.y = rDetector * sin(clu.phi);
     edmClusterCore.position.z = rDetector * sinh(clu.eta);
-    edmClusterCore.energy = clu.transEnergy * cosh(clu.eta); // saving energy
+    edmClusterCore.energy = clu.transEnergy * cosh(clu.eta);
     debug() << "Cluster x: " << edmClusterCore.position.x << " y " <<  edmClusterCore.position.y << " z "<<  edmClusterCore.position.z << " energy " << edmClusterCore.energy <<endmsg;
-
+    // now go one by one through all cells and see to if they belong here
+    // TODO if noise is added there will be lots of cells - make it faster?
+    for (const auto& cell : *cells) {
+      etaCell = m_segmentation->eta(cell.core().cellId);
+      phiCell = m_segmentation->phi(cell.core().cellId);
+      if( (abs(idEta(etaCell)-idEta(clu.eta)) <= halfEtaWin)
+        && (abs(idPhi(phiCell)-idPhi(clu.phi)) <= halfPhiWin) ) {
+        edmCluster.addhits(cell);
+      }
+    }
   }
-
   return StatusCode::SUCCESS;
 }
 

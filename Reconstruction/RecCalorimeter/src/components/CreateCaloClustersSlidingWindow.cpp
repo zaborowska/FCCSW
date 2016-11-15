@@ -72,8 +72,6 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   prepareTowers();
   buildTowers();
 
-  warning()<<"TOWERS size: "<<m_towers.size()<<endmsg;
-
   // 2. Find local maxima with sliding window, build preclusters
   int halfEtaWin =  floor(m_nEtaWindow/2.);
   int halfPhiWin =  floor(m_nPhiWindow/2.);
@@ -149,8 +147,8 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
           // Calculate barycentre position (smaller window used to reduce noise influence)
           for(int ipEta = iEta-halfEtaPos; ipEta <= iEta+halfEtaPos; ipEta++) {
             for(int ipPhi = iPhi-halfPhiPos; ipPhi <= iPhi+halfPhiPos; ipPhi++) {
-              posEta += (ipEta - m_nEtaTower/2. )* m_deltaEtaTower  * m_towers[ipEta][ipPhi];
-              posPhi += (ipPhi - m_nPhiTower/2. )* m_deltaPhiTower * m_towers[ipEta][ipPhi];
+              posEta += eta(ipEta) * m_towers[ipEta][ipPhi];
+              posPhi += phi(ipPhi) * m_towers[ipEta][ipPhi];
               sumEnergyPos += m_towers[ipEta][ipPhi];
             }
           }
@@ -264,34 +262,37 @@ void CreateCaloClustersSlidingWindow::buildTowers() {
   //Loop through a collection of calorimeter cells and build calo towers (unordered_map)
 
   int iPhi = 0, iEta = 0;
-  float eta = 0;
+  float etaCell = 0;
   for (const auto& ecell : *cells) {
     // find to which tower the cell belongs (defined by index ieta and iphi)
-    eta = m_segmentation->eta(ecell.core().cellId);
-    iEta = idEta(eta);
+    etaCell = m_segmentation->eta(ecell.core().cellId);
+    iEta = idEta(etaCell);
     iPhi = idPhi(m_segmentation->phi(ecell.core().cellId));
+    // debug()<<"\t-> eta = "<<etaCell<<" -> "<<iEta<<" -> "<<eta(iEta)<<"\t-> phi = "<<m_segmentation->phi(ecell.core().cellId)<<" -> "<<iPhi<<" -> "<<phi(iPhi)<<endmsg;
     // save transverse energy
-    m_towers[iEta][iPhi] += ecell.core().energy/cosh(eta);
+    m_towers[iEta][iPhi] += ecell.core().energy/cosh(etaCell);
   }
   return;
 }
 
 int CreateCaloClustersSlidingWindow::idEta(float aEta) {
   // shift Ids so they start at 0 (segmentation returns IDs that may be from -N to N)
-  return floor(aEta/m_deltaEtaTower) + (m_nEtaTower-1)/2;
+  // for segmentation in eta the middle cell has its centre at eta=0
+  return floor((aEta+m_deltaEtaTower/2.)/m_deltaEtaTower) + (m_nEtaTower-1)/2;
 }
 
 int CreateCaloClustersSlidingWindow::idPhi(float aPhi) {
   // shift Ids so they start at 0 (segmentation returns IDs that may be from -N to N)
+  // for segmentation in phi there is an even number of bins so there is an edge at phi=0
   return floor(aPhi/m_deltaPhiTower) + (m_nPhiTower-1)/2;
 }
 
-float CreateCaloClustersSlidingWindow::eta(float aIdEta) {
+float CreateCaloClustersSlidingWindow::eta(int aIdEta) {
   // middle of the tower
-  return (aIdEta - (m_nEtaTower-1)/2 + 0.5) * m_deltaEtaTower;
+  return (aIdEta - (m_nEtaTower-1)/2 ) * m_deltaEtaTower;
 }
 
-float CreateCaloClustersSlidingWindow::phi(float aIdPhi) {
+float CreateCaloClustersSlidingWindow::phi(int aIdPhi) {
   // middle of the tower
-  return (aIdPhi - (m_nPhiTower-1)/2 + 0.5) * m_deltaPhiTower;
+  return (aIdPhi - (m_nPhiTower-1)/2 ) * m_deltaPhiTower;
 }

@@ -110,12 +110,32 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
         // test local maximum in phi
         if(m_checkPhiLocalMax) {
           // check closest neighbour on the right
-          if(sumOverEta[iPhi-halfPhiWin] < sumOverEta[iPhi+halfPhiWin+1]) {
-            toRemove = true;
+          if(iPhi > halfPhiWin - 1 && iPhi < m_nPhiTower - halfPhiWin - 1) {
+            if(sumOverEta[iPhi-halfPhiWin] < sumOverEta[iPhi+halfPhiWin+1]) {
+              toRemove = true;
+            }
+          } else if(iPhi < halfPhiWin ) {
+            if(sumOverEta[iPhi-halfPhiWin+m_nPhiTower] < sumOverEta[iPhi+halfPhiWin+1]) {
+              toRemove = true;
+            }
+          } else {
+            if(sumOverEta[iPhi-halfPhiWin] < sumOverEta[iPhi+halfPhiWin+1-m_nPhiTower]) {
+              toRemove = true;
+            }
           }
           // check closest neighbour on the left
-          if(sumOverEta[iPhi+halfPhiWin] < sumOverEta[iPhi-halfPhiWin-1]) {
-            toRemove = true;
+          if(iPhi > halfPhiWin && iPhi < m_nPhiTower - halfPhiWin) {
+            if(sumOverEta[iPhi+halfPhiWin] < sumOverEta[iPhi-halfPhiWin-1]) {
+              toRemove = true;
+            }
+          } else if(iPhi < halfPhiWin + 1 )  {
+            if(sumOverEta[iPhi+halfPhiWin] < sumOverEta[iPhi-halfPhiWin-1+m_nPhiTower]) {
+              toRemove = true;
+            }
+          } else {
+            if(sumOverEta[iPhi+halfPhiWin-m_nPhiTower] < sumOverEta[iPhi-halfPhiWin-1]) {
+              toRemove = true;
+            }
           }
         }
         // test local maximum in eta (if it wasn't already marked as to be removed)

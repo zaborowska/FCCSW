@@ -31,8 +31,6 @@ CreateCaloClustersSlidingWindow::CreateCaloClustersSlidingWindow(const std::stri
   declareProperty("nPhiPosition", m_nPhiPosition = 3);
   declareProperty("nEtaDuplicates", m_nEtaDuplicates = 2);
   declareProperty("nPhiDuplicates", m_nPhiDuplicates = 2);
-  declareProperty("nEtaObject", m_nEtaObject = 5);
-  declareProperty("nPhiObject", m_nPhiObject = 5);
   declareProperty("energyThreshold", m_energyThreshold = 3);
   declareProperty("energyPosThreshold", m_energyPosThreshold = 0.1);
   declareProperty("checkPhiLocalMax", m_checkPhiLocalMax = true);

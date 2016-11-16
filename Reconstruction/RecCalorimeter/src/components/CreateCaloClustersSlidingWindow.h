@@ -149,10 +149,6 @@ private:
   int m_nEtaDuplicates;
   /// Size of the window in phi for the overlap removal (in units of tower size)
   int m_nPhiDuplicates;
- /// Size of the window in eta for the final object (in units of tower size)
-  int m_nEtaObject;
-  /// Size of the window in phi for the final object (in units of tower size)
-  int m_nPhiObject;
   /// Energy threshold for cluster finding
   float m_energyThreshold;
   /// Energy threshold in the window for the position calculation

@@ -253,7 +253,9 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   for(auto it1 = m_preClusters.begin(); it1!=m_preClusters.end(); it1++) {
     debug()<<(*it1).eta << " "<<(*it1).phi<<" "<< (*it1).transEnergy <<endmsg;
     for(auto it2 = it1+1; it2!=m_preClusters.end();) {
-      if ( (fabs((*it1).eta-(*it2).eta)<(m_nEtaDuplicates*m_deltaEtaTower)) && (fabs((*it1).phi-(*it2).phi)<(m_nPhiDuplicates*m_deltaPhiTower)) ) {
+      if ( (abs(idEta((*it1).eta)-idEta((*it2).eta)) < m_nEtaDuplicates)
+        && ( (abs(idPhi((*it1).phi)-idPhi((*it2).phi)) < floor(m_nPhiDuplicates/2.))
+          || (abs(idPhi((*it1).phi)-idPhi((*it2).phi)) > m_nPhiTower - floor(m_nPhiDuplicates/2.)) ) )  {
         it2 = m_preClusters.erase(it2);
       }
       else {

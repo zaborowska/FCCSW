@@ -252,10 +252,9 @@ StatusCode CreateCaloClustersSlidingWindow::finalize() {
 }
 
 void CreateCaloClustersSlidingWindow::prepareTowers() {
-  auto tubeSizes = det::utils::tubeDimensions(m_segmentation->volumeID(m_cells.get()->at(0).cellId()));
-  double maxEta = CLHEP::Hep3Vector(tubeSizes.x(), 0 , tubeSizes.z()).eta();
-  m_nEtaTower = 2.*ceil((maxEta-m_deltaEtaTower/2.)/m_deltaEtaTower) + 1;
-  m_nPhiTower = 2*ceil((2*Gaudi::Units::pi-m_deltaPhiTower/2.)/m_deltaPhiTower) + 1;
+   auto numOfCells = det::utils::numberOfCells(m_segmentation->volumeID(m_cells.get()->at(0).cellId()), *m_segmentation);
+  m_nEtaTower = numOfCells[1];
+  m_nPhiTower = numOfCells[0];
   //debug()<<"nEta "<< m_nEtaTower <<" nPhi " << m_nPhiTower <<endmsg;
   for(int iEta = 0; iEta < m_nEtaTower; iEta++) {
     m_towers[iEta].assign(m_nPhiTower, 0);

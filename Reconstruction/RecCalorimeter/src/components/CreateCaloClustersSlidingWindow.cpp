@@ -283,14 +283,14 @@ void CreateCaloClustersSlidingWindow::buildTowers() {
 
 int CreateCaloClustersSlidingWindow::idEta(float aEta) {
   // shift Ids so they start at 0 (segmentation returns IDs that may be from -N to N)
-  // for segmentation in eta the middle cell has its centre at eta=0
+  // for segmentation in eta the middle cell has its centre at eta=0 (segmentation offset = 0)
   return floor((aEta+m_deltaEtaTower/2.)/m_deltaEtaTower) + (m_nEtaTower-1)/2;
 }
 
 int CreateCaloClustersSlidingWindow::idPhi(float aPhi) {
   // shift Ids so they start at 0 (segmentation returns IDs that may be from -N to N)
-  // for segmentation in phi there is an even number of bins so there is an edge at phi=0
-  return floor(aPhi/m_deltaPhiTower) + (m_nPhiTower-1)/2;
+  // for segmentation in phi the middle cell has its centre at phi=0 (segmentation offset = 0)
+  return floor((aPhi+m_deltaPhiTower/2.)/m_deltaPhiTower) + (m_nPhiTower-1)/2;
 }
 
 float CreateCaloClustersSlidingWindow::eta(int aIdEta) {

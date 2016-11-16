@@ -164,10 +164,37 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
           // Build precluster
           // Calculate barycentre position (smaller window used to reduce noise influence)
           for(int ipEta = iEta-halfEtaPos; ipEta <= iEta+halfEtaPos; ipEta++) {
-            for(int ipPhi = iPhi-halfPhiPos; ipPhi <= iPhi+halfPhiPos; ipPhi++) {
-              posEta += eta(ipEta) * m_towers[ipEta][ipPhi];
-              posPhi += phi(ipPhi) * m_towers[ipEta][ipPhi];
-              sumEnergyPos += m_towers[ipEta][ipPhi];
+            if(iPhi >= halfPhiWin && iPhi < m_nPhiTower - halfPhiWin - 1) {
+              // most common case
+              for(int ipPhi = iPhi-halfPhiPos; ipPhi <= iPhi+halfPhiPos; ipPhi++) {
+                posEta += eta(ipEta) * m_towers[ipEta][ipPhi];
+                posPhi += phi(ipPhi) * m_towers[ipEta][ipPhi];
+                sumEnergyPos += m_towers[ipEta][ipPhi];
+              }
+            }  else if (iPhi < halfPhiWin) {
+              // corner case: centre in phi is close to lower edge
+              for(int ipPhi = iPhi-halfPhiPos+m_nPhiTower; ipPhi < m_nPhiTower; ipPhi++) {
+                posEta += eta(ipEta) * m_towers[ipEta][ipPhi];
+                posPhi += phi(ipPhi) * m_towers[ipEta][ipPhi];
+                sumEnergyPos += m_towers[ipEta][ipPhi];
+              }
+              for(int ipPhi = 0; ipPhi <= iPhi+halfPhiPos; ipPhi++) {
+                posEta += eta(ipEta) * m_towers[ipEta][ipPhi];
+                posPhi += phi(ipPhi) * m_towers[ipEta][ipPhi];
+                sumEnergyPos += m_towers[ipEta][ipPhi];
+              }
+            } else {
+              // corner case: centre in phi is close to upper edge
+              for(int ipPhi = iPhi-halfPhiPos; ipPhi < m_nPhiTower; ipPhi++) {
+                posEta += eta(ipEta) * m_towers[ipEta][ipPhi];
+                posPhi += phi(ipPhi) * m_towers[ipEta][ipPhi];
+                sumEnergyPos += m_towers[ipEta][ipPhi];
+              }
+              for(int ipPhi = 0; ipPhi <= iPhi+halfPhiPos-m_nPhiTower; ipPhi++) {
+                posEta += eta(ipEta) * m_towers[ipEta][ipPhi];
+                posPhi += phi(ipPhi) * m_towers[ipEta][ipPhi];
+                sumEnergyPos += m_towers[ipEta][ipPhi];
+              }
             }
           }
           // If non-zero energy in the cluster, add to pre-clusters (reduced size for pos. calculation -> energy in the core can be zero)

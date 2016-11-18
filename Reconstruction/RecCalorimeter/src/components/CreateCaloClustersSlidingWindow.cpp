@@ -264,7 +264,6 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
         it2 = m_preClusters.erase(it2);
       }
       else {
-        //debug()<< (*it2).eta <<" "<<m_preClusters.size()<<endmsg;
         it2++;
       }
     }

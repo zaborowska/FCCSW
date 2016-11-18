@@ -69,6 +69,7 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   // 1. Get calorimeter towers (calorimeter grid in eta phi, all layers merged)
   prepareTowers();
   buildTowers();
+  debug()<<"size of towers: "<<m_towers.size()<<" x "<<m_towers[0].size()<<endmsg;
 
   // 2. Find local maxima with sliding window, build preclusters
   int halfEtaWin =  floor(m_nEtaWindow/2.);
@@ -305,20 +306,17 @@ StatusCode CreateCaloClustersSlidingWindow::finalize() {
 }
 
 void CreateCaloClustersSlidingWindow::prepareTowers() {
-   auto numOfCells = det::utils::numberOfCells(m_segmentation->volumeID(m_cells.get()->at(0).cellId()), *m_segmentation);
+  auto numOfCells = det::utils::numberOfCells(m_segmentation->volumeID(m_cells.get()->at(0).cellId()), *m_segmentation);
   m_nEtaTower = numOfCells[1];
   m_nPhiTower = numOfCells[0];
-  //debug()<<"nEta "<< m_nEtaTower <<" nPhi " << m_nPhiTower <<endmsg;
-  for(int iEta = 0; iEta < m_nEtaTower; iEta++) {
-    m_towers[iEta].assign(m_nPhiTower, 0);
-  }
+  m_towers.assign(m_nEtaTower, std::vector<float>(m_nPhiTower,0));
 }
 
 void CreateCaloClustersSlidingWindow::buildTowers() {
   // Get the input collection with cells from simulation + digitisation (after calibration and with noise)
   const fcc::CaloHitCollection* cells = m_cells.get();
   debug() << "Input Hit collection size: " << cells->size() << endmsg;
-  //Loop through a collection of calorimeter cells and build calo towers (unordered_map)
+  //Loop through a collection of calorimeter cells and build calo towers
 
   int iPhi = 0, iEta = 0;
   float etaCell = 0;

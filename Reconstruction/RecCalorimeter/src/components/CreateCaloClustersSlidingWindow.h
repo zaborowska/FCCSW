@@ -120,8 +120,7 @@ private:
   /// PhiEta segmentation
   DD4hep::DDSegmentation::GridPhiEta* m_segmentation;
   // calorimeter towers
-  /* std::unordered_map<std::pair<int,int>, float, boost::hash<std::pair<int, int>>> m_towers; */
-  std::unordered_map<int, std::vector<float>> m_towers;
+  std::vector<std::vector<float>> m_towers;
   /// Name of the detector readout
   std::string m_readoutName;
   /// Size of the tower in eta

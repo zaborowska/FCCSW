@@ -141,19 +141,23 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
         // test local maximum in eta (if it wasn't already marked as to be removed)
         if(m_checkEtaLocalMax && (!toRemove) ) {
           // check closest neighbour on the right
-          for(int iPhiWindowLocalCheck = iPhi - halfPhiWin; iPhiWindowLocalCheck <= iPhi+halfPhiWin; iPhiWindowLocalCheck++) {
-            sumPhiSlicePrevEtaWin += m_towers[iEta - halfEtaWin - 1][iPhiWindowLocalCheck];
-            sumLastPhiSlice += m_towers[iEta + halfEtaWin][iPhiWindowLocalCheck];
+          if(iEta>halfEtaWin) {
+            for(int iPhiWindowLocalCheck = iPhi - halfPhiWin; iPhiWindowLocalCheck <= iPhi+halfPhiWin; iPhiWindowLocalCheck++) {
+              sumPhiSlicePrevEtaWin += m_towers[iEta - halfEtaWin - 1][iPhiWindowLocalCheck];
+              sumLastPhiSlice += m_towers[iEta + halfEtaWin][iPhiWindowLocalCheck];
+            }
+            if(sumPhiSlicePrevEtaWin > sumLastPhiSlice) {
+              toRemove = true;
+            }
           }
-          if(sumPhiSlicePrevEtaWin > sumLastPhiSlice) {
-            toRemove = true;
-          }
-          for(int iPhiWindowLocalCheck = iPhi - halfPhiWin; iPhiWindowLocalCheck <= iPhi+halfPhiWin; iPhiWindowLocalCheck++) {
-            sumPhiSliceNextEtaWin += m_towers[iEta + halfEtaWin + 1][iPhiWindowLocalCheck];
-            sumFirstPhiSlice += m_towers[iEta - halfEtaWin][iPhiWindowLocalCheck];
-          }
-          if(sumPhiSliceNextEtaWin > sumFirstPhiSlice) {
-            toRemove = true;
+          if(iEta < m_nEtaTower - halfEtaWin - 1) {
+            for(int iPhiWindowLocalCheck = iPhi - halfPhiWin; iPhiWindowLocalCheck <= iPhi+halfPhiWin; iPhiWindowLocalCheck++) {
+              sumPhiSliceNextEtaWin += m_towers[iEta + halfEtaWin + 1][iPhiWindowLocalCheck];
+              sumFirstPhiSlice += m_towers[iEta - halfEtaWin][iPhiWindowLocalCheck];
+            }
+            if(sumPhiSliceNextEtaWin > sumFirstPhiSlice) {
+              toRemove = true;
+            }
           }
           sumFirstPhiSlice = 0;
           sumLastPhiSlice = 0;
@@ -323,6 +327,13 @@ void CreateCaloClustersSlidingWindow::buildTowers() {
     etaCell = m_segmentation->eta(ecell.core().cellId);
     iEta = idEta(etaCell);
     iPhi = idPhi(m_segmentation->phi(ecell.core().cellId));
+    // correct for the even number of bins in segmentation (first and last bin have half-width)
+    // to be removed once we make sure every geometry takes that into account
+    if(m_nPhiTower%2 == 0) {
+      if(iPhi==m_nPhiTower) {
+        iPhi = 0;
+      }
+    }
     // debug()<<"\t-> eta = "<<etaCell<<" -> "<<iEta<<" -> "<<eta(iEta)<<"\t-> phi = "<<m_segmentation->phi(ecell.core().cellId)<<" -> "<<iPhi<<" -> "<<phi(iPhi)<<endmsg;
     // save transverse energy
     m_towers[iEta][iPhi] += ecell.core().energy/cosh(etaCell);
@@ -333,13 +344,13 @@ void CreateCaloClustersSlidingWindow::buildTowers() {
 int CreateCaloClustersSlidingWindow::idEta(float aEta) {
   // shift Ids so they start at 0 (segmentation returns IDs that may be from -N to N)
   // for segmentation in eta the middle cell has its centre at eta=0 (segmentation offset = 0)
-  return floor((aEta+m_deltaEtaTower/2.)/m_deltaEtaTower) + (m_nEtaTower-1)/2;
+  return floor((aEta+m_deltaEtaTower/2.)/m_deltaEtaTower) + floor(m_nEtaTower/2);
 }
 
 int CreateCaloClustersSlidingWindow::idPhi(float aPhi) {
   // shift Ids so they start at 0 (segmentation returns IDs that may be from -N to N)
   // for segmentation in phi the middle cell has its centre at phi=0 (segmentation offset = 0)
-  return floor((aPhi+m_deltaPhiTower/2.)/m_deltaPhiTower) + (m_nPhiTower-1)/2;
+  return floor((aPhi+m_deltaPhiTower/2.)/m_deltaPhiTower) + floor(m_nPhiTower/2);
 }
 
 float CreateCaloClustersSlidingWindow::eta(int aIdEta) {

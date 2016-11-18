@@ -4,11 +4,6 @@
 // GAUDI
 #include "GaudiAlg/GaudiAlgorithm.h"
 
-// C++
-#include <unordered_map>
-#include <utility>
-#include <boost/functional/hash.hpp>
-
 // FCCSW
 #include "FWCore/DataHandle.h"
 #include "DetSegmentation/GridPhiEta.h"
@@ -82,7 +77,7 @@ public:
 
 private:
   /**  Prepare calorimeter towers.
-   *  Create map with towers for the calorimeter.
+   *  Create empty towers for the calorimeter.
    */
   void prepareTowers();
   /**  Build calorimeter towers.

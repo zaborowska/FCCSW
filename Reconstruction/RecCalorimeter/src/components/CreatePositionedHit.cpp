@@ -75,11 +75,13 @@ StatusCode CreatePositionedHit::execute() {
   double rCellMin = 2700.;
   int nActiveLayers[3]={22,83,11};
   auto decoder = m_geoSvc->lcdd()->readout(m_readoutName).idSpec().decoder();
+  long long id = 0;
   //Loop though CaloHits, calculate position from cellID, create and fill information in a CaloCluster
   for (const auto& cell : *calocells) {
     //Current active layer r-minimum r
     //Volume dimensions of Tube - det::utils::tubeDimensions(volumeID) - ThreeVector rmin, rmax, dz (half-length)
-    double rmin_layer = det::utils::tubeDimensions(cell.core().cellId).x();
+    id = cell.core().cellId;
+    double rmin_layer = det::utils::tubeDimensions(id).x();
     //Next active layer [ needed for r_cell = middle of the cell (active + passive) ]
     //If half size of cell in r not known, calculate it from the next layer r-min
     decoder->setValue(cell.core().cellId);
@@ -109,7 +111,7 @@ StatusCode CreatePositionedHit::execute() {
 
 
     //Global position of the cell
-    auto position =  m_segmentation->positionFromREtaPhi( rCell, m_segmentation->eta(cell.core().cellId), m_segmentation->phi(cell.core().cellId) );
+    auto position =  m_segmentation->positionFromREtaPhi( rCell, m_segmentation->eta(id), m_segmentation->phi(id) );
     auto edmPos = fcc::Point();
     edmPos.x = position.x();
     edmPos.y = position.y();
@@ -118,12 +120,14 @@ StatusCode CreatePositionedHit::execute() {
     auto positionedHit = edmPositionedHitCollection->create(edmPos, cell.core());
 
     //Debug information about cells
-    debug() << "cellID " << cell.core().cellId <<" energy " << cell.core().energy << " decoder: all fields "
-            << decoder->valueString() << " r " << rCell << " eta " <<  m_segmentation->eta(cell.core().cellId)
-            << " phi " <<  m_segmentation->phi(cell.core().cellId)<< endmsg;
+    if ( msgLevel  ( MSG::DEBUG ) ) {
+      debug() << "cellID " << id << " energy " << cell.core().energy
+              << " decoder: all fields " << decoder->valueString()
+              << " r " << rCell << " eta " <<  m_segmentation->eta(id)
+              << " phi " << m_segmentation->phi(id) << endmsg;
+    }
   }
   debug() << "Output CaloCluster collection size: " << edmPositionedHitCollection->size() << endmsg;
-
 
   return StatusCode::SUCCESS;
 }

@@ -36,7 +36,9 @@ from Configurables import CreateCaloCells
 createcells = CreateCaloCells("CreateCaloCells",
                               calibTool=calibcells, doCellCalibration=True,
                               addCellNoise=False,filterCellNoise=False,
-                              readoutName="ECalHitsPhiEta",fieldNames=["system","ECAL_Cryo","bath","EM_barrel"],fieldValues=[5,1,1,1],
+                              readoutName="ECalHitsPhiEta",
+                              fieldNames=["system","ECAL_Cryo","bath","EM_barrel"],
+                              fieldValues=[5,1,1,1],
                               OutputLevel=INFO)
 createcells.DataInputs.hits.Path="newECalHits"
 createcells.DataOutputs.cells.Path="caloCells"
@@ -45,11 +47,14 @@ createcells.DataOutputs.cells.Path="caloCells"
 from Configurables import CreateCaloClustersSlidingWindow
 from GaudiKernel.PhysicalConstants import pi
 createclusters = CreateCaloClustersSlidingWindow("CreateCaloClusters",
-                                                 deltaEtaTower=0.01,deltaPhiTower=2*pi/628.0,
-                                                 nEtaWindow = 5, nPhiWindow = 5,
-                                                 nEtaPosition = 3, nPhiPosition = 3,
-                                                 nEtaDuplicates = 5, nPhiDuplicates = 5,
-                                                 checkPhiLocalMax = True, checkEtaLocalMax = True,
+                                                 readoutName="ECalHitsPhiEta",
+                                                 fieldNames=["system","ECAL_Cryo","bath","EM_barrel"],
+                                                 fieldValues=[5,1,1,1],
+                                                 deltaEtaTower=0.01, deltaPhiTower=2*pi/629.,
+                                                 nEtaWindow = 9, nPhiWindow = 9,
+                                                 nEtaPosition =7, nPhiPosition = 7,
+                                                 nEtaDuplicates = 9, nPhiDuplicates = 9,
+                                                 energyThreshold = 3,
                                                  OutputLevel=DEBUG)
 createclusters.DataInputs.cells.Path="caloCells"
 createclusters.DataOutputs.clusters.Path="caloClusters"
@@ -60,8 +65,8 @@ positionhit.DataInputs.caloCells.Path="caloCells"
 positionhit.DataOutputs.caloPositionedHits.Path="caloCellsPositions"
 
 
-out = PodioOutput("out", filename="output_ecalReco_test.root",
-                   OutputLevel=DEBUG)
+out = PodioOutput("out", filename="new_output_ecalReco_10events.root",
+                   OutputLevel=INFO)
 out.outputCommands = ["keep *"]
 
 #CPU information
@@ -71,8 +76,10 @@ audsvc = AuditorSvc()
 audsvc.Auditors = [chra]
 podioinput.AuditExecute = True
 createclusters.AuditExecute = True
+merge.AuditExecute = True
 createcells.AuditExecute = True
 positionhit.AuditExecute = True
+out.AuditExecute = True
 
 
 ApplicationMgr(
@@ -84,7 +91,7 @@ ApplicationMgr(
               out
               ],
     EvtSel = 'NONE',
-    EvtMax   = 1,
+    EvtMax   = 10,
     ExtSvc = [podioevent, geoservice],
  )
 

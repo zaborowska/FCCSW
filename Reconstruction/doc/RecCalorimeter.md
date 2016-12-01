@@ -30,7 +30,6 @@ Options:
 * readoutName (string, name of the detector readout)
 * activeVolumeName (string, name of active volumes)
 * activeFieldName (string, name of active layers for sampling calorimeter)
-<<<<<<< .merge_file_OGY9eU
 * fieldNames (list of strings, name of the fields describing the segmented volume)
 * fieldValues (list of ints, values of the fields describing the segmented volume)
 

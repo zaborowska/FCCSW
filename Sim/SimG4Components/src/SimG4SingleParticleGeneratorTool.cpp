@@ -122,6 +122,7 @@ StatusCode SimG4SingleParticleGeneratorTool::saveToEdm(const G4PrimaryVertex* aV
   vertex.ctau(aVertex->GetT0()*Gaudi::Units::c_light*sim::g42edm::length);
 
   fcc::MCParticle particle = particles->create();
+<<<<<<< .merge_file_tPuVR6
   fcc::BareParticle& core = particle.core();
   core.pdgId = aParticle->GetPDGcode();
   core.status = 1;
@@ -130,6 +131,17 @@ StatusCode SimG4SingleParticleGeneratorTool::saveToEdm(const G4PrimaryVertex* aV
   core.p4.pz = aParticle->GetPz()*sim::g42edm::energy;
   core.p4.mass = aParticle->GetMass()*sim::g42edm::energy;
   particle.startVertex(vertex);
+=======
+  fcc::BareParticle& core = particle.Core();
+  core.Type = aParticle->GetPDGcode();
+  core.Status = 1;
+  core.Charge = aParticle->GetCharge();
+  core.P4.Px = aParticle->GetPx()*sim::g42edm::energy;
+  core.P4.Py = aParticle->GetPy()*sim::g42edm::energy;
+  core.P4.Pz = aParticle->GetPz()*sim::g42edm::energy;
+  core.P4.Mass = aParticle->GetMass()*sim::g42edm::energy;
+  particle.StartVertex(vertex);
+>>>>>>> .merge_file_sUBE97
 
   m_genParticlesHandle.put(particles);
   m_genVerticesHandle.put(vertices);

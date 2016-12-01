@@ -30,6 +30,7 @@ Options:
 * readoutName (string, name of the detector readout)
 * activeVolumeName (string, name of active volumes)
 * activeFieldName (string, name of active layers for sampling calorimeter)
+<<<<<<< .merge_file_dhrbtV
 * fieldNames (list of strings, name of the fields describing the segmented volume)
 * fieldValues (list of ints, values of the fields describing the segmented volume)
 
@@ -61,6 +62,10 @@ Noise is added to all cells, not only those with signal. Hence a list of all cel
 # Reconstruction
 
 Reconstruction creates clusters (`fcc::CaloCluster`) out of cells (`fcc::CaloHit`). Each cluster stores the information about its global position (x, y, z), energy and the relation to the cells it is composed of.
+=======
+* fieldNames (vector of string, name of the fields describing the segmented volume)
+* fieldValues (vector of int, values of the fields describing the segmented volume)
+>>>>>>> .merge_file_gtvvDR
 
 ## Sliding window algorithm
 
@@ -110,6 +115,7 @@ Clusters are created using the pre-clusters energy (energy of towers within the 
 
 # Example
 
+<<<<<<< .merge_file_dhrbtV
 Example script which runs ECAL cell reconstruction is [here](../RecCalorimeter/options/runEcalReconstruction.py).
 
 * Read input file with Geant4 hits
@@ -121,4 +127,14 @@ Before running the script, load the library libDetSegmentation.so (necessary bec
 ~~~{.sh}
 LD_PRELOAD=build.$BINARY_TAG/lib/libDetSegmentation.so
 ./run gaudirun.py Reconstruction/RecCalorimeter/options/runEcalReconstruction.py
+=======
+Example script which runs ECAL cell reconstruction is [here] (https://github.com/HEP-FCC/FCCSW/blob/master/Reconstruction/RecCalorimeter/options/runEcalReconstruction.py).
+* Read input file with Geant4 hits
+* Produce calo cells (CreateCaloCells)
+* Store cells as CaloHits with cellID (produced by CreateCaloCells) and as CaloClusters with position (produced by CreatePositionedHit)
+
+How to run the script (loading of libDetSegmentation.so necessary because of the phi-eta segmenation usage):
+~~~{.sh}
+LD_PRELOAD=build.$BINARY_TAG/lib/libDetSegmentation.so ./run gaudirun.py Reconstruction/RecCalorimeter/options/runEcalReconstruction.py
+>>>>>>> .merge_file_gtvvDR
 ~~~

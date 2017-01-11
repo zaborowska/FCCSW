@@ -145,6 +145,8 @@ private:
   double eta() const;
   /// determine the azimuthal angle phi based on the current cell ID
   double phi() const;
+  uint64_t etaId(const Vector3D& globalPosition) const;
+  uint64_t phiId(const Vector3D& globalPosition) const;
 
   /// the grid size in eta
   double m_gridSizeEta;

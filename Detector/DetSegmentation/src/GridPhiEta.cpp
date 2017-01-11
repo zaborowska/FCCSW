@@ -20,9 +20,7 @@ GridPhiEta::GridPhiEta(const std::string& cellEncoding) :
 }
 
 /// destructor
-GridPhiEta::~GridPhiEta() {
-
-}
+GridPhiEta::~GridPhiEta() {}
 
 /// determine the local based on the cell ID
 Vector3D GridPhiEta::position(const CellID& cID) const {
@@ -33,10 +31,8 @@ Vector3D GridPhiEta::position(const CellID& cID) const {
 /// determine the cell ID based on the position
 CellID GridPhiEta::cellID(const Vector3D& /* localPosition */, const Vector3D& globalPosition, const VolumeID& vID) const {
   _decoder->setValue(vID);
-  double lEta = etaFromXYZ(globalPosition);
-  double lPhi = phiFromXYZ(globalPosition);
-  (*_decoder)[m_etaID] = positionToBin(lEta, m_gridSizeEta, m_offsetEta);
-  (*_decoder)[m_phiID] = positionToBin(lPhi, 2 * M_PI / (double) m_phiBins, m_offsetPhi);
+  (*_decoder)[m_etaID] = etaId(globalPosition);
+  (*_decoder)[m_phiID] = phiId(globalPosition);
   return _decoder->getValue();
 }
 
@@ -62,6 +58,15 @@ double GridPhiEta::phi(const CellID& cID) const {
   _decoder->setValue(cID);
   CellID phiValue = (*_decoder)[m_phiID].value();
   return binToPosition(phiValue, 2.*M_PI/(double)m_phiBins, m_offsetPhi);
+}
+
+uint64_t GridPhiEta::etaId(const Vector3D& globalPosition) const {
+  double lEta = etaFromXYZ(globalPosition);
+  return positionToBin(lEta, m_gridSizeEta, m_offsetEta);
+}
+uint64_t GridPhiEta::phiId(const Vector3D& globalPosition) const {
+  double lPhi = phiFromXYZ(globalPosition);
+  return positionToBin(lPhi, 2 * M_PI / (double) m_phiBins, m_offsetPhi);
 }
 REGISTER_SEGMENTATION(GridPhiEta)
 }

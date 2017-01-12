@@ -20,11 +20,10 @@ StatusCode CalibrateCaloHitsTool::initialize() {
   return sc;
 }
 
-void CalibrateCaloHitsTool::calibrate(std::vector<fcc::CaloHit*>& aHits) {
+void CalibrateCaloHitsTool::calibrate(std::unordered_map<uint64_t, double>& aHits) {
   //Loop through vector with Geant4 energy deposits, multiply energy to get cell energy at electromagnetic scale
-  for (auto& ecells : aHits) {
-    ecells->core().energy *= m_invSamplingFraction;
-  }
+  std::for_each( aHits.begin(), aHits.end(),
+    [this](std::pair<const uint64_t , double>& p) {p.second *= m_invSamplingFraction;} );
 }
 
 StatusCode CalibrateCaloHitsTool::finalize() {

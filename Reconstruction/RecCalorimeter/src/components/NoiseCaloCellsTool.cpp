@@ -32,23 +32,23 @@ StatusCode NoiseCaloCellsTool::initialize() {
   return sc;
 }
 
-void NoiseCaloCellsTool::createRandomCellNoise(std::vector<fcc::CaloHit*>& aCells) {
-  double randomNoise = 0;
-  for (auto& ecell : aCells) {
-    randomNoise = m_gauss.shoot();
-    ecell->core().energy = randomNoise;
-    ecell->core().time = 0;
-    ecell->core().bits = 0;
-  }
+void NoiseCaloCellsTool::createRandomCellNoise(std::unordered_map<uint64_t, double>& aCells) {
+  // double randomNoise = 0;
+  // for (auto& cell : aCells) {
+  //   randomNoise = m_gauss.shoot();
+  //   cell.second += randomNoise;
+  // }
+  std::for_each( aCells.begin(), aCells.end(), [this](std::pair<const uint64_t , double>& p) {p.second += m_gauss.shoot();} );
 }
 
-void NoiseCaloCellsTool::filterCellNoise(std::vector<fcc::CaloHit*>& aCells) {
-  //Erase a cell if it has energy bellow a threshold from the vector
+void NoiseCaloCellsTool::filterCellNoise(std::unordered_map<uint64_t, double>& aCells) {
+  //Erase a cell if it has energy bellow a threshold
   double threshold = m_filterThreshold * m_cellNoise;
-  aCells.erase( std::remove_if( aCells.begin(),
-      aCells.end(),
-      [&threshold](fcc::CaloHit* h){return bool( h->core().energy < threshold);} ),
-    aCells.end() );
+  auto it = aCells.begin();
+  while ((it = std::find_if(it, aCells.end(),
+        [&threshold](std::pair<const uint64_t,double>& p){return bool(p.second < threshold);})
+      ) != aCells.end())
+    aCells.erase(it++);
 }
 
 

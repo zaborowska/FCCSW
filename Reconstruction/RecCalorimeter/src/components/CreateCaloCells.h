@@ -47,7 +47,7 @@ public:
 
 private:
 
-  StatusCode prepareEmptyCells(std::vector<fcc::CaloHit*>& caloCells);
+  StatusCode prepareEmptyCells();
 
   /// Handle for merging Geant4 hits tool
   ToolHandle<IMergeCaloHitsTool> m_mergeTool;
@@ -83,6 +83,7 @@ private:
   SmartIF<IGeoSvc> m_geoSvc;
   /// Vector of noise hits
   std::vector<fcc::CaloHit*> m_edmHitsNoiseVector;
+  std::unordered_map<uint64_t, double> m_cellsMap;
 
 };
 

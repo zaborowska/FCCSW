@@ -67,35 +67,26 @@ StatusCode NoiseCaloCellsComplexTool::initialize() {
 
 }
 
-void NoiseCaloCellsComplexTool::createRandomCellNoise(std::vector<fcc::CaloHit*>& aCells) {
+void NoiseCaloCellsComplexTool::createRandomCellNoise(std::unordered_map<uint64_t, double>& aCells) {
 
   double noisePerCell = 0;
 
-  for (auto& ecell : aCells) {
-    //Get the noise constant
-    noisePerCell = getNoiseConstantPerCell(ecell->core().cellId);
-    //Store random noise hits
-    //Time=0 (out-of-time pile-up should be taken into account in the pile-up constants) - to be checked
-    //info() << "noise per cell: " << noisePerCell << endmsg;
-    ecell->core().energy =  noisePerCell*m_gauss.shoot();
-    ecell->core().time = 0;
-    ecell->core().bits = 0;
+  for (auto& cell : aCells) {
+    // Get the noise constant
+    noisePerCell = getNoiseConstantPerCell(cell.second);
+    // Generate random noise
+    cell.second +=  noisePerCell*m_gauss.shoot();
   }
 }
 
-void NoiseCaloCellsComplexTool::filterCellNoise(std::vector<fcc::CaloHit*>& aCells) {
+void NoiseCaloCellsComplexTool::filterCellNoise(std::unordered_map<uint64_t, double>& aCells) {
   //Erase a cell if it has energy bellow a threshold from the vector
-  double noisePerCell = 0;
-  for (auto ecell = aCells.begin(); ecell!=aCells.end();) {
-    //Get the noise constant
-    noisePerCell = getNoiseConstantPerCell((*ecell)->core().cellId);
-    if ( (*ecell)->core().energy<m_filterThreshold*noisePerCell ) {
-      aCells.erase(ecell);
-    }
-    else {
-      ++ecell;
-    }
-  }
+  auto it = aCells.begin();
+  while ((it = std::find_if(it, aCells.end(),
+        [this](std::pair<const uint64_t,double>& p){
+          return bool(p.second < m_filterThreshold * getNoiseConstantPerCell(p.first));}
+        )) != aCells.end())
+    aCells.erase(it++);
 }
 
 
@@ -113,7 +104,6 @@ StatusCode NoiseCaloCellsComplexTool::finalize() {
   delete m_file;
   StatusCode sc = GaudiTool::finalize();
   return sc;
-
 }
 
 StatusCode NoiseCaloCellsComplexTool::initNoiseFromFile() {

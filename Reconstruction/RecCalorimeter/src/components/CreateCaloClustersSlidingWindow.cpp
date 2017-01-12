@@ -68,6 +68,7 @@ StatusCode CreateCaloClustersSlidingWindow::initialize() {
     error() << "Volume readout field descriptors (names and values) have different size. " << endmsg;
     return StatusCode::FAILURE;
   }
+  decoder->setValue(0);
   for(uint it = 0; it < m_fieldNames.size(); it++) {
     (*decoder)[m_fieldNames[it]] = m_fieldValues[it];
   }
@@ -272,6 +273,7 @@ void CreateCaloClustersSlidingWindow::prepareTowers() {
   m_nEtaTower = numOfCells[1];
   m_nPhiTower = numOfCells[0];
   m_towers.assign(m_nEtaTower, std::vector<float>(m_nPhiTower,0));
+  info()<<"Largest number of segmentation cells (phi x eta): " << m_nPhiTower << " x " << m_nEtaTower << endmsg;
   if(m_nPhiTower % 2 == 0 || m_nEtaTower % 2 == 0) {
     error()<<"Number of segmentation bins must be an odd number. See detector documentation for more details."<<endmsg;
   }

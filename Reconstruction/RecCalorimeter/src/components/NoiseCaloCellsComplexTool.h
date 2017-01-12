@@ -28,7 +28,7 @@ class IGeoSvc;
  *
  */
 
-class NoiseCaloCellsComplexTool : public GaudiTool, virtual public INoiseCaloCellsTool 
+class NoiseCaloCellsComplexTool : public GaudiTool, virtual public INoiseCaloCellsTool
 {
 public:
   NoiseCaloCellsComplexTool(const std::string& type,const std::string& name, const IInterface* parent);
@@ -39,10 +39,10 @@ public:
   /** @brief Create random CaloHits (gaussian distribution) for the vector of cells (aCells).
    * Vector of cells must contain all cells in the calorimeter with their cellIDs.
    */
-  virtual void createRandomCellNoise(std::vector<fcc::CaloHit*>& aCells) final; 
+  virtual void createRandomCellNoise(std::unordered_map<uint64_t, double>&  aCells) final;
   /** @brief Remove cells with energy bellow threshold*sigma from the vector of cells
    */
-  virtual void filterCellNoise(std::vector<fcc::CaloHit*>& aCells) final; 
+  virtual void filterCellNoise(std::unordered_map<uint64_t, double>& aCells) final;
 
   /// Open file and read noise histograms in the memory
   StatusCode initNoiseFromFile();
@@ -63,7 +63,7 @@ private:
   std::string m_pileupHistoName;
   /// Name of electronics noise histogram
   std::string m_elecNoiseHistoName;
- 
+
   /// Energy threshold (cells with Ecell < filterThreshold*m_cellNoise removed)
   double m_filterThreshold;
 

@@ -28,7 +28,7 @@ savecaltool.DataOutputs.caloHits.Path = "caloHits"
 geantsim = SimG4Alg("SimG4Alg", outputs= ["SimG4SaveCalHits/saveCalHits"])
 
 from Configurables import CreateMidVolPositions
-positions = CreateMidVolPositions("positions", readoutName = readout, OutputLevel = DEBUG)
+positions = CreateMidVolPositions("positions", readoutName = readout, OutputLevel = VERBOSE)
 positions.DataInputs.caloCells.Path = "caloHits"
 positions.DataOutputs.caloPositionedHits.Path = "caloPositions"
 

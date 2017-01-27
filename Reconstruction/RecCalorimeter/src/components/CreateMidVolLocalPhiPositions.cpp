@@ -61,7 +61,7 @@ StatusCode CreateMidVolLocalPhiPositions::execute() {
   segmentation = dynamic_cast<DD4hep::DDSegmentation::GridLocalPhi*>(
       m_geoSvc->lcdd()->readout(m_readoutName).segmentation().segmentation());
   if (segmentation == nullptr) {
-    error() << "There is no phi-eta segmentation!!!!" << endmsg;
+    error() << "There is no phi segmentation!!!!" << endmsg;
     return StatusCode::FAILURE;
   }
 
@@ -88,7 +88,7 @@ StatusCode CreateMidVolLocalPhiPositions::execute() {
 
     // Debug information about cells
     decoder->setValue(cellid);
-    verbose() << decoder->valueString() << " \tenergy "<< cell.core().energy << "\ncellID " << cellid << endmsg;
+    verbose() << decoder->valueString() << " \tenergy "<< cell.core().energy << "\tcellID " << cellid << endmsg;
     debug() << "translation of cell volume (mm) : \t" << translation[0] * 10. << "\t" << translation[1] * 10. << "\t" << translation[2] * 10. << endmsg;
     debug() << "additional shift in segmentation cell (mm) : \t" << xSegm * 10. << "\t" << ySegm * 10. << "\t" << translation[2] * 10. << endmsg;
 

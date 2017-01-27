@@ -1,5 +1,5 @@
-#ifndef RECCALORIMETER_CREATEMIDVOLPOSITIONS_H
-#define RECCALORIMETER_CREATEMIDVOLPOSITIONS_H
+#ifndef RECCALORIMETER_CREATEMIDVOLLOCALPHIPOSITIONS_H
+#define RECCALORIMETER_CREATEMIDVOLLOCALPHIPOSITIONS_H
 
 // GAUDI
 #include "GaudiAlg/GaudiAlgorithm.h"
@@ -17,20 +17,19 @@ class PositionedCaloHitCollection;
 // DD4hep
 #include "DD4hep/Readout.h"
 
-/** @class CreateMidVolPositions
+/** @class CreateMidVolLocalPhiPositions
  *
  *  Retrieve positions of the cells.
- *  This algorithm saves the centre posiiton of the volume. No segmentation is taken into account
+ *  This algorithm takes into account the centre positon of the volume and GridLocalPhi segmentation.
  *
  *  @author Anna Zaborowska
  *
  */
 
-
-class CreateMidVolPositions : public GaudiAlgorithm
+class CreateMidVolLocalPhiPositions : public GaudiAlgorithm
 {
 public:
-  CreateMidVolPositions(const std::string& name, ISvcLocator* svcLoc);
+  CreateMidVolLocalPhiPositions(const std::string& name, ISvcLocator* svcLoc);
 
   StatusCode initialize();
 
@@ -45,9 +44,8 @@ private:
   DataHandle<fcc::PositionedCaloHitCollection> m_caloPositionedHits;
   /// Name of the detector readout
   std::string m_readoutName;
-
   /// Pointer to the geometry service
   SmartIF<IGeoSvc> m_geoSvc;
 };
 
-#endif /* RECCALORIMETER_CREATEMIDVOLPOSITIONS_H */
+#endif /* RECCALORIMETER_CREATEMIDVOLLOCALPHIPOSITIONS_H */

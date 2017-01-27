@@ -3,6 +3,7 @@
 
 // FCCSW
 #include "DetSegmentation/GridPhiEta.h"
+#include "DetSegmentation/GridLocalPhi.h"
 
 // DD4hep
 #include "DD4hep/DetFactoryHelper.h"
@@ -68,6 +69,13 @@ std::vector<std::pair<int,int>> bitfieldExtremes(DD4hep::DDSegmentation::BitFiel
  */
 CLHEP::Hep3Vector envelopeDimensions(uint64_t aVolumeId);
 
+/** Get the phi size of the box envelope (TGeoBBox).
+ *   @param[in] aVolumeId The volume ID.
+ *   @param[in] aVolumePosition Position of the volume for which the cells are counted.
+ *   return Phi size of the volume.
+ */
+double envelopePhiSize(uint64_t aVolumeId, std::array<double, 3> aVolumePosition);
+
 /** Get the dimensions of a tube (TGeoTube).
  *   @param[in] aVolumeId The volume ID.
  *   return Dimensions of the tube (rmin, rmax, z(half-length)).
@@ -113,6 +121,17 @@ std::array<uint, 2> numberOfCells(uint64_t aVolumeId, const DD4hep::DDSegmentati
  *   return Array of the number of cells in (r, phi).
  */
 std::array<uint, 2> numberOfCells(uint64_t aVolumeId, const DD4hep::DDSegmentation::PolarGridRPhi& aSeg);
+
+/** Get the number of cells for the volume and a given local phi segmentation.
+ *   The volume size is taken from the envelope size (may be larger than the actual volume).
+ *   The position of the volume can be taken from the volume manager.
+ *   @warning No offset in segmentation is currently taken into account.
+ *   @param[in] aVolumeId The volume for which the cells are counted.
+ *   @param[in] aVolumePosition Position of the volume for which the cells are counted.
+ *   @param[in] aSeg Handle to the segmentation of the volume.
+ *   return The number of cells in phi.
+ */
+uint numberOfCells(uint64_t aVolumeId, std::array<double, 3> aVolumePosition, const DD4hep::DDSegmentation::GridLocalPhi& aSeg);
 
 /** Get the number of the volumes containing a given name.
  *   For an example see: Test/TestReconstruction/tests/options/testcellcountingXYZ.py.

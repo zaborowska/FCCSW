@@ -165,6 +165,34 @@ std::array<uint, 2> numberOfCells(uint64_t aVolumeId, const DD4hep::DDSegmentati
   return {cellsR,cellsPhi};
 }
 
+double envelopePhiSize(uint64_t aVolumeId, std::array<double, 3> aVolumePosition) {
+  // get half-widths
+  auto halfSizes = envelopeDimensions(aVolumeId);
+  // calculate volume span in phi
+  std::array<double, 4> phiCorners;
+  phiCorners[0] = atan2( aVolumePosition[1] + halfSizes[1], aVolumePosition[0] + halfSizes[0]);
+  phiCorners[1] = atan2( aVolumePosition[1] + halfSizes[1], aVolumePosition[0] - halfSizes[0]);
+  phiCorners[2] = atan2( aVolumePosition[1] - halfSizes[1], aVolumePosition[0] + halfSizes[0]);
+  phiCorners[3] = atan2( aVolumePosition[1] - halfSizes[1], aVolumePosition[0] - halfSizes[0]);
+  std::sort(phiCorners.begin(), phiCorners.end());
+  double phiSpan = phiCorners[3] - phiCorners[0];
+  if( phiSpan > M_PI ) {
+    phiSpan -= 2 * M_PI;
+    if ( phiSpan < 0 ) {
+      phiSpan *= -1.;
+    }
+  }
+  return phiSpan;
+}
+
+uint numberOfCells(uint64_t aVolumeId, std::array<double, 3> aVolumePosition, const DD4hep::DDSegmentation::GridLocalPhi& aSeg) {
+  double phiSpan = envelopePhiSize(aVolumeId, aVolumePosition);
+  // get segmentation cell width
+  double phiCellSize = aSeg.gridSizePhi();
+  uint cellsPhi = 2 * ceil( (phiSpan / 2.) / phiCellSize );
+  return cellsPhi;
+}
+
 unsigned int countPlacedVolumes(TGeoVolume* aHighestVolume, const std::string& aMatchName) {
   int numberOfPlacedVolumes = 0;
   TGeoNode* node;

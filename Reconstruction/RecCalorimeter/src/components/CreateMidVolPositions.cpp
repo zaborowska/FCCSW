@@ -68,7 +68,7 @@ StatusCode CreateMidVolPositions::execute() {
 
     // Debug information about cells
     decoder->setValue(cellid);
-    debug() << decoder->valueString() << " \tenergy "<< cell.core().energy << "\ncellID " << cellid << endmsg;
+    verbose() << decoder->valueString() << " \tenergy "<< cell.core().energy << "\ncellID " << cellid << endmsg;
     debug() << "translation of cell volume (mm) : \t" << translation[0] * 10. << "\t" << translation[1] * 10. << "\t" << translation[2] * 10. << endmsg;
   }
   debug() << "Output Hit Positions collection size: " << edmPositionedHitCollection->size() << endmsg;

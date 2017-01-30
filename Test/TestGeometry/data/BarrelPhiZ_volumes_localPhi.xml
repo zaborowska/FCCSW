@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0"
+       xmlns:xs="http://www.w3.org/2001/XMLSchema"
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+
+  <includes>
+    <gdmlFile  ref="../../../Detector/DetCommon/compact/elements.xml"/>
+    <gdmlFile  ref="../../../Detector/DetCommon/compact/materials.xml"/>
+  </includes>
+
+  <info name="BarrelPhiZvolumes"
+        title="BarrelPhiZvolumes"
+        author="Anna"
+        url="no"
+        version="1"
+        status="development">
+    <comment>Barrel containing modules replicated in phi and z</comment>
+  </info>
+
+  <define>
+    <constant name="world_x" value="5*m"/>
+    <constant name="world_y" value="5*m"/>
+    <constant name="world_z" value="20*m"/>
+    <constant name="BarECal_rmin" value="2500*mm"/>
+    <constant name="BarECal_rmax" value="3600*mm"/>
+    <constant name="BarECal_dz" value="10.*m"/>
+    <constant name="dz" value="BarECal_dz/1000"/> <!--half length-->
+  </define>
+
+  <display>
+    <vis name="BoxVis" r="0.5" g="0.0" b="0.5" alpha="0.2" showDaugthers="true" visible="false" />
+        <vis name="comp0" r="0." g="0." b="1.0" alpha="0.6" showDaugthers="true" visible="true" drawingStyle="solid"/>
+  </display>
+
+  <readouts>
+    <readout name="ECalHits">
+      <segmentation type="GridLocalPhi" grid_size_phi="3.14/2"/>
+      <id>phi:-17,z:14,system:1,localPhi:1</id>
+    </readout>
+  </readouts>
+
+  <detectors>
+    <detector id="0" name="BarrelECal" type="BarrelPhiZ" sensitive="true" readout="ECalHits">
+      <material name="PbWO4"/>
+      <sensitive type="SimpleCalorimeterSD"/>
+      <dimensions rmin="BarECal_rmin" rmax="BarECal_rmax" dz="BarECal_dz"/>
+      <position   x="0"     y="0"     z="0"/>
+      <rotation   x="0"     y="0"     z="0"/>
+      <module name="tower" >
+        <material name="PbWO4" sensitive="true"/>
+        <dimensions phiBins="10." dz="dz"/>
+      </module>
+    </detector>
+  </detectors>
+
+</lccdd>

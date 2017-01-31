@@ -15,7 +15,7 @@ hepmc_dump = HepMCDumper("hepmc")
 hepmc_dump.DataInputs.hepmc.Path="hepmc"
 
 from Configurables import GeoSvc
-geoservice = GeoSvc("GeoSvc", detectors=['file:Test/TestGeometry/data/BarrelPhiZLayer_volumes.xml'])
+geoservice = GeoSvc("GeoSvc", detectors=['file:Test/TestGeometry/data/BarrelPhiZRow_volumes.xml'])
 readout = "ECalHits"
 
 from Configurables import SimG4Svc

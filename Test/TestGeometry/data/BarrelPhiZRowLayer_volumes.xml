@@ -34,12 +34,12 @@
 
   <readouts>
     <readout name="ECalHits">
-      <id>layer:4,phi:-17,z:14,system:1</id>
+      <id>layer:4,row:4,phi:-17,z:14,system:1</id>
     </readout>
   </readouts>
 
   <detectors>
-    <detector id="0" name="BarrelECal" type="BarrelPhiZLayer" sensitive="true" readout="ECalHits">
+    <detector id="0" name="BarrelECal" type="BarrelPhiZRowLayer" sensitive="true" readout="ECalHits">
       <sensitive type="SimpleCalorimeterSD"/>
       <dimensions rmin="BarECal_rmin" rmax="BarECal_rmax" dz="BarECal_dz"/>
       <position   x="0"     y="0"     z="0"/>
@@ -47,9 +47,11 @@
       <module name="tower" >
         <dimensions phiBins="10." dz="dz"/>
       </module>
-      <layer >
-        <material name="PbWO4" sensitive="true"/>
+      <row>
         <dimensions dz="dz/10"/>
+      </row>
+      <layer repeat="9">
+        <material name="PbWO4" sensitive="true"/>
       </layer>
     </detector>
   </detectors>

@@ -69,6 +69,7 @@ static DD4hep::Geometry::Ref_t createBarrelPhiZ(DD4hep::Geometry::LCDD& aLcdd,
   for(uint iz=0; iz < numZ; iz++) {
     DD4hep::Geometry::Transform3D transformcell(DD4hep::Geometry::Rotation3D(
         DD4hep::Geometry::RotationZYX(0,0,0)), DD4hep::Geometry::Position(0,0,offset+iz*2.*cell_dim.dz() ));
+    std::cout << " Placing slice " << iz <<" at z = " << offset + iz * 2. * cell_dim.dz() << std::endl;
     DD4hep::Geometry::PlacedVolume slice_physvol = det_vol.placeVolume(slice_vol,transformcell);
     slice_physvol.addPhysVolID("z", iz);
   }

@@ -24,7 +24,7 @@
     <constant name="BarECal_rmin" value="2500*mm"/>
     <constant name="BarECal_rmax" value="3600*mm"/>
     <constant name="BarECal_dz" value="10.*m"/>
-    <constant name="dz" value="BarECal_dz/1000"/> <!--half length-->
+    <constant name="dz" value="BarECal_dz/10"/> <!--half length-->
   </define>
 
   <display>

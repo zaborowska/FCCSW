@@ -18,8 +18,6 @@ CreatePositionedHit::CreatePositionedHit(const std::string& name, ISvcLocator* s
   declareInput("caloCells", m_caloCells,"caloCells");
   declareOutput("caloPositionedHits", m_caloPositionedHits,"caloPositionedHits");
   declareProperty("readoutName", m_readoutName="ECalHitsNew");
-  declareProperty("activeFieldName", m_activeFieldName="active_layer");
-  declareProperty("activeVolumeName", m_activeVolumeName="LAr_sensitive");
 }
 
 StatusCode CreatePositionedHit::initialize() {
@@ -40,16 +38,11 @@ StatusCode CreatePositionedHit::initialize() {
   }
 
   // Get PhiEta segmentation
-  m_segmentation = dynamic_cast<DD4hep::DDSegmentation::GridPhiEta*>(m_geoSvc->lcdd()->readout(m_readoutName).segmentation().segmentation());
+  m_segmentation = dynamic_cast<DD4hep::DDSegmentation::GridRPhiEta*>(m_geoSvc->lcdd()->readout(m_readoutName).segmentation().segmentation());
   if(m_segmentation == nullptr) {
-    error()<<"There is no phi-eta segmentation."<<endmsg;
+    error()<<"There is no r-phi-eta segmentation."<<endmsg;
     return StatusCode::FAILURE;
   }
-
-  // Get the total number of active volumes in the geometry
-  auto highestVol = gGeoManager->GetTopVolume();
-  m_numLayers = det::utils::countPlacedVolumes(highestVol, m_activeVolumeName);
-  debug() << "Number of active layers " << m_numLayers << endmsg;
 
   return sc;
 }
@@ -64,51 +57,30 @@ StatusCode CreatePositionedHit::execute() {
   auto edmPositionedHitCollection = m_caloPositionedHits.createAndPut();
 
   //Intialize value of the half size in r
-  double r_cell_size_half = -1.;
-  uint64_t id = 0;
   auto decoder = m_geoSvc->lcdd()->readout(m_readoutName).idSpec().decoder();
   //Loop though CaloHits, calculate position from cellID, create and fill information in a CaloCluster
   for (const auto& cell : *calocells) {
-    id = cell.core().cellId;
+    uint64_t id = cell.core().cellId;
 
-    //Current active layer r-minimum r
-    //Volume dimensions of Tube - det::utils::tubeDimensions(volumeID) - ThreeVector rmin, rmax, dz (half-length)
-    double rmin_layer = det::utils::tubeDimensions(id).x();
-    //Next active layer [ needed for r_cell = middle of the cell (active + passive) ]
-    //If half size of cell in r not known, calculate it from the next layer r-min
     decoder->setValue(id);
-    if (r_cell_size_half < 0) {
-      if ((*decoder)[m_activeFieldName] < m_numLayers - 1) {
-        (*decoder)[m_activeFieldName] = (*decoder)[m_activeFieldName] + 1;
-        uint64_t cellID_next = decoder->getValue();
-        double rmin_layer_next = det::utils::tubeDimensions(cellID_next).x();
-        r_cell_size_half = (rmin_layer_next - rmin_layer)*0.5;
-      }
-      else {
-        info() << "Cell size in r not defined!!!! " << endmsg;
-      }
-    }
-    //r_cell: middle of the cell (active + passive)
-    double r_cell = rmin_layer+r_cell_size_half;
-
     //Global position of the cell
-    auto position =  m_segmentation->positionFromREtaPhi( r_cell, m_segmentation->eta(id), m_segmentation->phi(id) );
+    auto position =  m_segmentation->positionFromREtaPhi( m_segmentation->r(id), m_segmentation->eta(id), m_segmentation->phi(id) );
     auto edmPos = fcc::Point();
-    edmPos.x = position.x();
-    edmPos.y = position.y();
-    edmPos.z = position.z();
+    edmPos.x = position.x() * 10.;
+    edmPos.y = position.y() * 10.;
+    edmPos.z = position.z() * 10.;
 
     auto positionedHit = edmPositionedHitCollection->create(edmPos, cell.core());
 
     //Debug information about cells
     if ( msgLevel ( MSG::DEBUG ) ) {
-      debug() << "cellID " << id <<" energy " << cell.core().energy << " decoder: all fields "
-              << decoder->valueString() << " r " << r_cell << " eta " <<  m_segmentation->eta(id)
-              << " phi " <<  m_segmentation->phi(id)<< endmsg;
+      double phi = m_segmentation->phi(id);
+      debug() << decoder->valueString()<< "    phi   " << m_segmentation->phi(id) << "cellID " << id
+              <<" energy " << cell.core().energy << "    x    " << edmPos.x << "     y     "
+              <<   edmPos.y << "     z     " <<  edmPos.z  << endmsg;
     }
   }
   debug() << "Output CaloCluster collection size: " << edmPositionedHitCollection->size() << endmsg;
-
 
   return StatusCode::SUCCESS;
 }

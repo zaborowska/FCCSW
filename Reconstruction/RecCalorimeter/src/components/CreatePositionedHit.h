@@ -7,7 +7,7 @@
 
 // FCCSW
 #include "FWCore/DataHandle.h"
-#include "DetSegmentation/GridPhiEta.h"
+#include "DetSegmentation/GridRPhiEta.h"
 class IGeoSvc;
 
 namespace fcc {
@@ -25,11 +25,12 @@ namespace DDSegmentation {
 
 /** @class CreatePositionedHit
  *
- *  Loops through caloHits (energy, cellID) and saves information in caloClusters (energy, global position)
- *  Only for Tube shapes with PhiEta segmentation!
+ *  Create position for every hit/cell based on the segmentation.
+ *  Works only with GridRPhiEta segmentation that returns a global position of the centre of the segmentation cell,
+ *  based on r,phi,eta (from: cell ID).
  *
  *  @author Jana Faltova
- *  @date   2016-09
+ *  @author Anna Zaborowska
  *
  */
 
@@ -61,7 +62,7 @@ private:
   /// Pointer to the geometry service
   SmartIF<IGeoSvc> m_geoSvc;
   /// PhiEta segmentation
-  DD4hep::DDSegmentation::GridPhiEta* m_segmentation;
+  DD4hep::DDSegmentation::GridRPhiEta* m_segmentation;
   /// Number of active layers
   unsigned int m_numLayers;
 };

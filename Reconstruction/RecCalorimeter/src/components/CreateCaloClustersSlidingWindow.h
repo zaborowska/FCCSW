@@ -58,11 +58,13 @@ struct cluster {
  *     If two pre-clusters are found next to each other (within window '\b nEtaDuplicates', '\b nPhiDuplicates'), the
  *pre-cluster with lower energy is removed.
  *     TODO: Currently there is no support on energy sharing between clusters, so if duplicate window is smaller than
- *sliding window, some towers may be taken twice (nstead of the weighted energy).
+ *sliding window, some towers may be taken twice (instead of the weighted energy).
  *  4. Build clusters.
  *     Clusters are created using the window of a fixed size in phi x eta ('\b nEtaFinal' '\b nPhiFinal' in units of
  *tower size) around the barycentre position.
- *     Position is calculated from the barycentre position and the inner radius of the detector.
+ *     Position is calculated from the barycentre position and the radius of the detector.
+ *     Radius may be defined by user ('\b radiusForPosition') or (if not defined) taken from det::utils::tubeDimensions.
+ *     The second approach may be used for sensitive cylindrical geometries.
  *     For each cluster the cell collection is searched and all those inside the cluster are attached.
  *
  *  Note: Sliding window performs well for electrons/gamma reconstruction. Topological clusters should be better for
@@ -179,6 +181,8 @@ private:
   bool m_checkEtaLocalMax;
   /// Flag if references to the cells should be saved
   bool m_saveCells;
+  /// Radius used to calculate cluster position from eta and phi. If not defined, radius from det::utils::tubeDimensions is used
+  double m_innerRadius;
 };
 
 #endif /* RECCALORIMETER_CREATECALOCLUSTERSSLIDINGWINDOW_H */

@@ -37,6 +37,7 @@ CreateCaloClustersSlidingWindow::CreateCaloClustersSlidingWindow(const std::stri
   declareProperty("checkPhiLocalMax", m_checkPhiLocalMax = true);
   declareProperty("checkEtaLocalMax", m_checkEtaLocalMax = true);
   declareProperty("saveCells", m_saveCells = false);
+  declareProperty("radiusForPosition", m_innerRadius = 0.);
 }
 
 StatusCode CreateCaloClustersSlidingWindow::initialize() {
@@ -80,6 +81,10 @@ StatusCode CreateCaloClustersSlidingWindow::initialize() {
 }
 
 StatusCode CreateCaloClustersSlidingWindow::execute() {
+  if (m_cells.get()->size() == 0) {
+    debug() << "No cells for the reconstruction. Exiting." << endmsg;
+    return StatusCode::SUCCESS;
+  }
   // 1. Get calorimeter towers (calorimeter grid in eta phi, all layers merged)
   prepareTowers();
   buildTowers();
@@ -249,17 +254,20 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   debug() << "Pre-clusters size after duplicates removal: " << m_preClusters.size() << endmsg;
 
   // 6. Create final clusters
-  // currently r plays no role, take inner radius for position calculation
-  auto tubeSizes = det::utils::tubeDimensions(m_volumeId);
-  double rDetector = tubeSizes.x() * 10;  // cm to mm
+    // currently only role of r is to calculate x,y,z position
+  if( ! m_innerRadius ) {
+    // if radius for position calculation is not defined bin properties, take inner radius from sensitive volume dimensions
+    auto tubeSizes = det::utils::tubeDimensions(m_volumeId);
+    m_innerRadius = tubeSizes.x() * 10;// cm to mm
+  }
   auto edmClusters = m_clusters.createAndPut();
   const fcc::CaloHitCollection* cells = m_cells.get();
   for (const auto clu : m_preClusters) {
     auto edmCluster = edmClusters->create();
     auto& edmClusterCore = edmCluster.core();
-    edmClusterCore.position.x = rDetector * cos(clu.phi);
-    edmClusterCore.position.y = rDetector * sin(clu.phi);
-    edmClusterCore.position.z = rDetector * sinh(clu.eta);
+    edmClusterCore.position.x = m_innerRadius * cos(clu.phi);
+    edmClusterCore.position.y = m_innerRadius * sin(clu.phi);
+    edmClusterCore.position.z = m_innerRadius * sinh(clu.eta);
     edmClusterCore.energy = clu.transEnergy * cosh(clu.eta);
     debug() << "Cluster eta: " << clu.eta << " phi: " << clu.phi << "x: " << edmClusterCore.position.x << " y "
             << edmClusterCore.position.y << " z " << edmClusterCore.position.z << " energy " << edmClusterCore.energy

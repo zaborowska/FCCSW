@@ -2,6 +2,7 @@
 
 // FCCSW
 #include "DetInterface/IGeoSvc.h"
+#include "DetSegmentation/GridPhiEta.h"
 
 // datamodel
 #include "datamodel/CaloHitCollection.h"
@@ -10,7 +11,6 @@
 
 // DD4hep
 #include "DD4hep/LCDD.h"
-#include "DDSegmentation/CartesianGridXYZ.h"
 #include "DDSegmentation/Segmentation.h"
 
 DECLARE_ALGORITHM_FACTORY(RedoSegmentation)
@@ -93,6 +93,21 @@ StatusCode RedoSegmentation::execute() {
   // cellID contains the volumeID that needs to be copied to the new id
   uint64_t oldid = 0;
   uint debugIter = 0;
+  // if segmentation is of type eta-phi (used for sliding window reco), additionally fill info
+  // about min/max existing fields
+  DD4hep::DDSegmentation::GridPhiEta* phietasegm = dynamic_cast<DD4hep::DDSegmentation::GridPhiEta*>(m_segmentation);
+  int minEtaId = 0;
+  int maxEtaId = 0;
+  int minPhiId = 0;
+  int maxPhiId = 0;
+  if(phietasegm != nullptr) {
+    // set initial values to be cretainly larger/smaller than the first cell
+    minPhiId = phietasegm->phiBins();
+    maxPhiId = - phietasegm->phiBins();
+    // take ridiculous large eta as the largest possible eta
+    minEtaId = 100 / phietasegm->gridSizeEta();
+    maxEtaId = - 100./ phietasegm->gridSizeEta();
+  }
   for(const auto& hit: *inHits) {
     fcc::CaloHit newHit = outHits->create();
     newHit.energy(hit.energy());
@@ -118,6 +133,32 @@ StatusCode RedoSegmentation::execute() {
       debug() << "NEW: " << m_segmentation->decoder()->valueString() << endmsg;
       debugIter++;
     }
+    // if that is et-phi grid, fill in data about existing min/max Ids
+    if(phietasegm != nullptr) {
+      int etaId = (*phietasegm->decoder())["eta"];
+      if(etaId < minEtaId) {
+        minEtaId = etaId;
+      }
+      if(etaId > maxEtaId) {
+        maxEtaId = etaId;
+      }
+      int phiId = (*phietasegm->decoder())["phi"];
+      if(phiId < minPhiId) {
+        minPhiId = phiId;
+      }
+      if(phiId > maxPhiId) {
+        maxPhiId = phiId;
+      }
+    }
+  }
+  // if that is et-phi grid, fill in data about existing min/max Ids
+  if(inHits->size() > 0 && phietasegm != nullptr) {
+    phietasegm->setMinEtaExisting(minEtaId);
+    phietasegm->setMaxEtaExisting(maxEtaId);
+    phietasegm->setMinPhiExisting(minPhiId);
+    phietasegm->setMaxPhiExisting(maxPhiId);
+    info() << "Filling additional information in eta-phi segmentation: eta  " << minEtaId << " to " << maxEtaId
+           << "\tphi " << minPhiId << " to " << maxPhiId << endmsg;
   }
 
   return StatusCode::SUCCESS;

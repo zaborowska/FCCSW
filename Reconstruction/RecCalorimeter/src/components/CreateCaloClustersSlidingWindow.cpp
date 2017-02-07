@@ -290,14 +290,33 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
 StatusCode CreateCaloClustersSlidingWindow::finalize() { return GaudiAlgorithm::finalize(); }
 
 void CreateCaloClustersSlidingWindow::prepareTowers() {
-  auto numOfCells = det::utils::numberOfCells(m_volumeId, *m_segmentation);
-  m_nEtaTower = numOfCells[1];
-  m_nPhiTower = numOfCells[0];
-  m_towers.assign(m_nEtaTower, std::vector<float>(m_nPhiTower, 0));
+  // check if segmentation contains info about existing cells
+  // this information is filled if RedoSegmentation algorithm was run
+  int minEtaId = abs(m_segmentation->minEtaExisting());
+  int maxEtaId = abs(m_segmentation->maxEtaExisting());
+  if( minEtaId != 0 || maxEtaId != 0 ) {
+    m_nEtaTower = (minEtaId > maxEtaId ? 2*minEtaId+1: 2*maxEtaId+1);
+  } else {
+    // if segmentation was already used in the simulation, take dimensions from geometry
+    // true if sensitive volume is cylindrical
+    auto numOfCells = det::utils::numberOfCells(m_volumeId, *m_segmentation);
+    m_nEtaTower = numOfCells[1];
+  }
+  // number of phi bins take directly from segmentation
+  m_nPhiTower = m_segmentation->phiBins();
   if (m_nPhiTower % 2 == 0 || m_nEtaTower % 2 == 0) {
     error() << "Number of segmentation bins must be an odd number. See detector documentation for more details."
             << endmsg;
   }
+  // check if size of existing cells is not smaller than the seeding window
+  if( m_nPhiTower < m_nPhiWindow ) {
+    m_nPhiTower = m_nPhiWindow;
+  }
+  if( m_nEtaTower < m_nEtaWindow ) {
+    m_nEtaTower = m_nEtaWindow;
+  }
+  info() << "Number of prepared segmentation cells (eta,phi) : " << m_nEtaTower << "   ,   " << m_nPhiTower << endmsg;
+  m_towers.assign(m_nEtaTower, std::vector<float>(m_nPhiTower, 0));
 }
 
 void CreateCaloClustersSlidingWindow::buildTowers() {

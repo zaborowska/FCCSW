@@ -76,6 +76,30 @@ public:
   inline void setFieldNameR(const std::string& fieldName) {
     m_rID = fieldName;
   }
+  /**  Set the min existing R ID of cells in the segmentation.
+   *   @param[in] aId Lowest existing cell ID in R.
+   */
+  inline void setMinRExisting(uint aId) {
+    m_minRExisting = aId;
+  }
+  /**  Get the min existing R ID of cells in the segmentation.
+   *   @return Lowest existing cell ID in R.
+   */
+  inline int minRExisting() {
+    return m_minRExisting;
+  }
+  /**  Set the max existing R ID of cells in the segmentation.
+   *   @param[in] aId Highest existing cell ID in R.
+   */
+  inline void setMaxRExisting(uint aId) {
+    m_maxRExisting = aId;
+  }
+  /**  Get the max existing R ID of cells in the segmentation.
+   *   @return Highest existing cell ID in R.
+   */
+  inline int maxRExisting() {
+    return m_maxRExisting;
+  }
 
 private:
   /// determine the radial distance R based on the current cell ID
@@ -87,6 +111,11 @@ private:
   double m_offsetR;
   /// the field name used for r
   std::string m_rID;
+  /// the minimum existing r id
+  int m_minRExisting;
+  /// the maximum existing r id
+  int m_maxRExisting;
+
 };
 }
 }

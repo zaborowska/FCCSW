@@ -5,7 +5,7 @@ namespace DDSegmentation {
 
 /// default constructor using an encoding string
 GridRPhiEta::GridRPhiEta(const std::string& cellEncoding) :
-  GridPhiEta(cellEncoding) {
+  GridPhiEta(cellEncoding), m_minRExisting(0), m_maxRExisting(0) {
   // define type and description
   _type = "GridRPhiEta";
   _description = "R-phi-eta segmentation in the global coordinates";

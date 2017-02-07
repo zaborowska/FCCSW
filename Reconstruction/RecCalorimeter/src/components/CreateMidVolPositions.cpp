@@ -19,7 +19,7 @@ CreateMidVolPositions::CreateMidVolPositions(const std::string& name, ISvcLocato
   : GaudiAlgorithm(name, svcLoc) {
   declareInput("caloCells", m_caloCells);
   declareOutput("caloPositionedHits", m_caloPositionedHits);
-  declareProperty("readoutName", m_readoutName = "ECalHitsNew");
+  declareProperty("readoutName", m_readoutName = "");
 }
 
 StatusCode CreateMidVolPositions::initialize() {
@@ -67,9 +67,11 @@ StatusCode CreateMidVolPositions::execute() {
     auto positionedHit = edmPositionedHitCollection->create(edmPos, cell.core());
 
     // Debug information about cells
-    decoder->setValue(cellid);
-    verbose() << decoder->valueString() << " \tenergy "<< cell.core().energy << "\tcellID " << cellid << endmsg;
-    debug() << "translation of cell volume (mm) : \t" << translation[0] * 10. << "\t" << translation[1] * 10. << "\t" << translation[2] * 10. << endmsg;
+    if(msgLevel(MSG::DEBUG)) {
+      decoder->setValue(cellid);
+      verbose() << decoder->valueString() << " \tenergy "<< cell.core().energy << "\tcellID " << cellid << endmsg;
+      debug() << "translation of cell volume (mm) : \t" << translation[0] * 10. << "\t" << translation[1] * 10. << "\t" << translation[2] * 10. << endmsg;
+    }
   }
   debug() << "Output Hit Positions collection size: " << edmPositionedHitCollection->size() << endmsg;
 

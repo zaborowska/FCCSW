@@ -87,11 +87,12 @@ StatusCode CreateMidVolLocalPhiPositions::execute() {
     auto positionedHit = edmPositionedHitCollection->create(edmPos, cell.core());
 
     // Debug information about cells
-    decoder->setValue(cellid);
-    verbose() << decoder->valueString() << " \tenergy "<< cell.core().energy << "\tcellID " << cellid << endmsg;
-    debug() << "translation of cell volume (mm) : \t" << translation[0] * 10. << "\t" << translation[1] * 10. << "\t" << translation[2] * 10. << endmsg;
-    debug() << "additional shift in segmentation cell (mm) : \t" << xSegm * 10. << "\t" << ySegm * 10. << "\t" << translation[2] * 10. << endmsg;
-
+    if(msgLevel(MSG::DEBUG)) {
+      decoder->setValue(cellid);
+      verbose() << decoder->valueString() << " \tenergy "<< cell.core().energy << "\tcellID " << cellid << endmsg;
+      debug() << "translation of cell volume (mm) : \t" << translation[0] * 10. << "\t" << translation[1] * 10. << "\t" << translation[2] * 10. << endmsg;
+      debug() << "additional shift in segmentation cell (mm) : \t" << xSegm * 10. << "\t" << ySegm * 10. << "\t" << translation[2] * 10. << endmsg;
+    }
   }
   debug() << "Output Hit Positions collection size: " << edmPositionedHitCollection->size() << endmsg;
 

@@ -1,30 +1,18 @@
 #include "CreateCaloClustersSlidingWindow.h"
 
-// FCCSW
-#include "DetInterface/IGeoSvc.h"
-#include "DetCommon/DetUtils.h"
-
 // Gaudi
 #include "GaudiKernel/PhysicalConstants.h"
 
 // datamodel
-#include "datamodel/CaloHitCollection.h"
 #include "datamodel/CaloClusterCollection.h"
-
-// DD4hep
-#include "DD4hep/LCDD.h"
 
 DECLARE_ALGORITHM_FACTORY(CreateCaloClustersSlidingWindow)
 
 CreateCaloClustersSlidingWindow::CreateCaloClustersSlidingWindow(const std::string& name, ISvcLocator* svcLoc)
-    : GaudiAlgorithm(name, svcLoc), m_volumeId(0) {
-  declareInput("cells", m_cells, "calo/cells");
+    : GaudiAlgorithm(name, svcLoc) {
   declareOutput("clusters", m_clusters, "calo/clusters");
-  declareProperty("readoutName", m_readoutName = "ECalHitsPhiEta");
-  declareProperty("fieldNames", m_fieldNames);
-  declareProperty("fieldValues", m_fieldValues);
-  declareProperty("deltaEtaTower", m_deltaEtaTower = 0.01);
-  declareProperty("deltaPhiTower", m_deltaPhiTower = 0.01);
+  declareProperty("towerTool", m_towerTool);
+  declarePrivateTool(m_towerTool, "SingleCaloTowerTool");
   declareProperty("nEtaWindow", m_nEtaWindow = 5);
   declareProperty("nPhiWindow", m_nPhiWindow = 15);
   declareProperty("nEtaPosition", m_nEtaPosition = 3);
@@ -37,57 +25,30 @@ CreateCaloClustersSlidingWindow::CreateCaloClustersSlidingWindow(const std::stri
   declareProperty("checkPhiLocalMax", m_checkPhiLocalMax = true);
   declareProperty("checkEtaLocalMax", m_checkEtaLocalMax = true);
   declareProperty("saveCells", m_saveCells = false);
-  declareProperty("radiusForPosition", m_innerRadius = 0.);
 }
 
 StatusCode CreateCaloClustersSlidingWindow::initialize() {
   if (GaudiAlgorithm::initialize().isFailure()) {
     return StatusCode::FAILURE;
   }
-  m_geoSvc = service("GeoSvc");
-  if (!m_geoSvc) {
-    error() << "Unable to locate Geometry Service. "
-            << "Make sure you have GeoSvc and SimSvc in the right order in the configuration." << endmsg;
+  if (!m_towerTool.retrieve()) {
+    error() << "Unable to retrieve the tower building tool." << endmsg;
     return StatusCode::FAILURE;
   }
-  // check if readouts exist
-  if (m_geoSvc->lcdd()->readouts().find(m_readoutName) == m_geoSvc->lcdd()->readouts().end()) {
-    error() << "Readout <<" << m_readoutName << ">> does not exist." << endmsg;
-    return StatusCode::FAILURE;
-  }
-  // retrieve PhiEta segmentation
-  m_segmentation = dynamic_cast<DD4hep::DDSegmentation::GridPhiEta*>(
-      m_geoSvc->lcdd()->readout(m_readoutName).segmentation().segmentation());
-  if (m_segmentation == nullptr) {
-    error() << "There is no phi-eta segmentation." << endmsg;
-    return StatusCode::FAILURE;
-  }
-
-  // get the ID of the volume for which the cells are counted
-  auto decoder = m_geoSvc->lcdd()->readout(m_readoutName).idSpec().decoder();
-  if (m_fieldNames.size() != m_fieldValues.size()) {
-    error() << "Volume readout field descriptors (names and values) have different size. " << endmsg;
-    return StatusCode::FAILURE;
-  }
-  decoder->setValue(0);
-  for (unsigned int it = 0; it < m_fieldNames.size(); it++) {
-    (*decoder)[m_fieldNames[it]] = m_fieldValues[it];
-  }
-  m_volumeId = decoder->getValue();
-  info() << "Reconstruction in volume with ID " << m_volumeId << endmsg;
-
   info() << "CreateCaloClustersSlidingWindow initialized" << endmsg;
   return StatusCode::SUCCESS;
 }
 
 StatusCode CreateCaloClustersSlidingWindow::execute() {
-  if (m_cells.get()->size() == 0) {
-    debug() << "No cells for the reconstruction. Exiting." << endmsg;
-    return StatusCode::SUCCESS;
-  }
   // 1. Get calorimeter towers (calorimeter grid in eta phi, all layers merged)
-  prepareTowers();
-  buildTowers();
+  auto towerMapSize = m_towerTool->prepareTowers(m_nEtaFinal, m_nPhiFinal);
+  m_nEtaTower = towerMapSize[0];
+  m_nPhiTower = towerMapSize[1];
+  m_towers.assign(m_nEtaTower, std::vector<float>(m_nPhiTower, 0));
+  if( m_towerTool->buildTowers(m_towers) == 0 ) {
+     debug() << "Empty cell collection." << endmsg;
+     return StatusCode::SUCCESS;
+  }
   debug() << "Number of calorimeter towers (eta x phi) : " << m_towers.size() << " x " << m_towers[0].size() << endmsg;
 
   // 2. Find local maxima with sliding window, build preclusters, calculate their barycentre position
@@ -177,8 +138,8 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
           // Calculate barycentre position (usually smaller window used to reduce noise influence)
           for (int ipEta = iEta - halfEtaPos; ipEta <= iEta + halfEtaPos; ipEta++) {
             for (int ipPhi = iPhi - halfPhiPos; ipPhi <= iPhi + halfPhiPos; ipPhi++) {
-              posEta += eta(ipEta) * m_towers[ipEta][phiNeighbour(ipPhi)];
-              posPhi += phi(phiNeighbour(ipPhi)) * m_towers[ipEta][phiNeighbour(ipPhi)];
+              posEta += m_towerTool->eta(ipEta) * m_towers[ipEta][phiNeighbour(ipPhi)];
+              posPhi +=  m_towerTool->phi(phiNeighbour(ipPhi)) * m_towers[ipEta][phiNeighbour(ipPhi)];
               sumEnergyPos += m_towers[ipEta][phiNeighbour(ipPhi)];
             }
           }
@@ -189,12 +150,12 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
             posPhi /= sumEnergyPos;
             // Calculate final cluster energy
             sumEnergyFin = 0;
-            idEtaFin = idEta(posEta);
-            idPhiFin = idPhi(posPhi);
+            idEtaFin = m_towerTool->idEta(posEta);
+            idPhiFin = m_towerTool->idPhi(posPhi);
             // Recalculating the energy within the final cluster size
             for (int ipEta = idEtaFin - halfEtaFin; ipEta <= idEtaFin + halfEtaFin; ipEta++) {
               for (int ipPhi = idPhiFin - halfPhiFin; ipPhi <= idPhiFin + halfPhiFin; ipPhi++) {
-                if (idEtaFin > 0 && idEtaFin < m_nEtaTower) {
+                if (ipEta >= 0 && ipEta < m_nEtaTower) {
                   sumEnergyFin += m_towers[ipEta][phiNeighbour(ipPhi)];
                 }
               }
@@ -242,9 +203,9 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
   for (auto it1 = m_preClusters.begin(); it1 != m_preClusters.end(); it1++) {
     // loop over all clusters with energy lower than it1 (sorting), erase if too close
     for (auto it2 = it1 + 1; it2 != m_preClusters.end();) {
-      if ((abs(idEta((*it1).eta) - idEta((*it2).eta)) < m_nEtaDuplicates) &&
-          ((abs(idPhi((*it1).phi) - idPhi((*it2).phi)) < m_nPhiDuplicates) ||
-           (abs(idPhi((*it1).phi) - idPhi((*it2).phi)) > m_nPhiTower - m_nPhiDuplicates))) {
+      if ((abs(m_towerTool->idEta((*it1).eta) - m_towerTool->idEta((*it2).eta)) < m_nEtaDuplicates) &&
+          ((abs(m_towerTool->idPhi((*it1).phi) - m_towerTool->idPhi((*it2).phi)) < m_nPhiDuplicates) ||
+           (abs(m_towerTool->idPhi((*it1).phi) - m_towerTool->idPhi((*it2).phi)) > m_nPhiTower - m_nPhiDuplicates))) {
         m_preClusters.erase(it2);
       } else {
         it2++;
@@ -255,109 +216,27 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
 
   // 6. Create final clusters
     // currently only role of r is to calculate x,y,z position
-  if( ! m_innerRadius ) {
-    // if radius for position calculation is not defined bin properties, take inner radius from sensitive volume dimensions
-    auto tubeSizes = det::utils::tubeDimensions(m_volumeId);
-    m_innerRadius = tubeSizes.x() * 10;// cm to mm
-  }
+  double radius = m_towerTool->radiusForPosition();
   auto edmClusters = m_clusters.createAndPut();
-  const fcc::CaloHitCollection* cells = m_cells.get();
   for (const auto clu : m_preClusters) {
     auto edmCluster = edmClusters->create();
     auto& edmClusterCore = edmCluster.core();
-    edmClusterCore.position.x = m_innerRadius * cos(clu.phi);
-    edmClusterCore.position.y = m_innerRadius * sin(clu.phi);
-    edmClusterCore.position.z = m_innerRadius * sinh(clu.eta);
+    edmClusterCore.position.x = radius * cos(clu.phi);
+    edmClusterCore.position.y = radius * sin(clu.phi);
+    edmClusterCore.position.z = radius * sinh(clu.eta);
     edmClusterCore.energy = clu.transEnergy * cosh(clu.eta);
     debug() << "Cluster eta: " << clu.eta << " phi: " << clu.phi << "x: " << edmClusterCore.position.x << " y "
             << edmClusterCore.position.y << " z " << edmClusterCore.position.z << " energy " << edmClusterCore.energy
             << endmsg;
     if (m_saveCells) {
-      // loop over cells and see if they belong here
-      for (const auto& cell : *cells) {
-        float etaCell = m_segmentation->eta(cell.core().cellId);
-        float phiCell = m_segmentation->phi(cell.core().cellId);
-        if ((abs(idEta(etaCell) - idEta(clu.eta)) <= halfEtaFin) &&
-            (abs(idPhi(phiCell) - idPhi(clu.phi)) <= halfPhiFin)) {
-          edmCluster.addhits(cell);
-        }
-      }
+       // loop over cells and see if they belong here
+       m_towerTool->matchCells(clu.eta, clu.phi, halfEtaWin, halfPhiWin, edmCluster);
     }
   }
   return StatusCode::SUCCESS;
 }
 
 StatusCode CreateCaloClustersSlidingWindow::finalize() { return GaudiAlgorithm::finalize(); }
-
-void CreateCaloClustersSlidingWindow::prepareTowers() {
-  // check if segmentation contains info about existing cells
-  // this information is filled if RedoSegmentation algorithm was run
-  int minEtaId = abs(m_segmentation->minEtaExisting());
-  int maxEtaId = abs(m_segmentation->maxEtaExisting());
-  if( minEtaId != 0 || maxEtaId != 0 ) {
-    m_nEtaTower = (minEtaId > maxEtaId ? 2*minEtaId+1: 2*maxEtaId+1);
-  } else {
-    // if segmentation was already used in the simulation, take dimensions from geometry
-    // true if sensitive volume is cylindrical
-    auto numOfCells = det::utils::numberOfCells(m_volumeId, *m_segmentation);
-    m_nEtaTower = numOfCells[1];
-  }
-  // number of phi bins take directly from segmentation
-  m_nPhiTower = m_segmentation->phiBins();
-  if (m_nPhiTower % 2 == 0 || m_nEtaTower % 2 == 0) {
-    error() << "Number of segmentation bins must be an odd number. See detector documentation for more details."
-            << endmsg;
-  }
-  // check if size of existing cells is not smaller than the seeding window
-  if( m_nPhiTower < m_nPhiWindow ) {
-    m_nPhiTower = m_nPhiWindow;
-  }
-  if( m_nEtaTower < m_nEtaWindow ) {
-    m_nEtaTower = m_nEtaWindow;
-  }
-  info() << "Number of prepared segmentation cells (eta,phi) : " << m_nEtaTower << "   ,   " << m_nPhiTower << endmsg;
-  m_towers.assign(m_nEtaTower, std::vector<float>(m_nPhiTower, 0));
-}
-
-void CreateCaloClustersSlidingWindow::buildTowers() {
-  // Get the input collection with cells from simulation + digitisation (after calibration and with noise)
-  const fcc::CaloHitCollection* cells = m_cells.get();
-  debug() << "Input Hit collection size: " << cells->size() << endmsg;
-  // Loop over a collection of calorimeter cells and build calo towers
-  int iPhi = 0, iEta = 0;
-  float etaCell = 0;
-  for (const auto& ecell : *cells) {
-    // find to which tower the cell belongs
-    etaCell = m_segmentation->eta(ecell.core().cellId);
-    iEta = idEta(etaCell);
-    iPhi = idPhi(m_segmentation->phi(ecell.core().cellId));
-    // save transverse energy
-    m_towers[iEta][iPhi] += ecell.core().energy / cosh(etaCell);
-  }
-  return;
-}
-
-int CreateCaloClustersSlidingWindow::idEta(float aEta) const {
-  // shift Ids so they start at 0 (segmentation returns IDs that may be from -N to N)
-  // for segmentation in eta the middle cell has its centre at eta=0 (segmentation offset = 0)
-  return floor((aEta + m_deltaEtaTower / 2.) / m_deltaEtaTower) + floor(m_nEtaTower / 2);
-}
-
-int CreateCaloClustersSlidingWindow::idPhi(float aPhi) const {
-  // shift Ids so they start at 0 (segmentation returns IDs that may be from -N to N)
-  // for segmentation in phi the middle cell has its centre at phi=0 (segmentation offset = 0)
-  return floor((aPhi + m_deltaPhiTower / 2.) / m_deltaPhiTower) + floor(m_nPhiTower / 2);
-}
-
-float CreateCaloClustersSlidingWindow::eta(int aIdEta) const {
-  // middle of the tower
-  return (aIdEta - (m_nEtaTower - 1) / 2) * m_deltaEtaTower;
-}
-
-float CreateCaloClustersSlidingWindow::phi(int aIdPhi) const {
-  // middle of the tower
-  return (aIdPhi - (m_nPhiTower - 1) / 2) * m_deltaPhiTower;
-}
 
 unsigned int CreateCaloClustersSlidingWindow::phiNeighbour(int aIPhi) const {
   if (aIPhi < 0) {

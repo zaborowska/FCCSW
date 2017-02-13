@@ -3,25 +3,15 @@
 
 // GAUDI
 #include "GaudiAlg/GaudiAlgorithm.h"
+#include "GaudiKernel/ToolHandle.h"
 
 // FCCSW
 #include "FWCore/DataHandle.h"
-#include "DetSegmentation/GridPhiEta.h"
-class IGeoSvc;
+#include "RecInterface/ITowerTool.h"
 
 // datamodel
-#include "datamodel/CaloHit.h"
 namespace fcc {
-class CaloHitCollection;
 class CaloClusterCollection;
-}
-
-// DD4hep
-#include "DD4hep/Readout.h"
-namespace DD4hep {
-namespace DDSegmentation {
-class Segmentation;
-}
 }
 
 // Cluster
@@ -92,36 +82,6 @@ public:
   StatusCode finalize();
 
 private:
-  /**  Prepare calorimeter towers.
-   *  Create empty towers for the calorimeter.
-   */
-  void prepareTowers();
-  /**  Build calorimeter towers.
-   *  Tower is segmented in eta and phi, with the energy from all layers (no r segmentation).
-   *  Cuurently the cells need to be included only in one tower.
-   *  TODO: split cell energy into more towers if cell size is larger than the tower
-   */
-  void buildTowers();
-  /**  Get the tower IDs in eta.
-   *   @param[in] aEta Position of the calorimeter cell in eta
-   *   @return ID (eta) of a tower
-   */
-  int idEta(float aEta) const;
-  /**  Get the tower IDs in phi.
-   *   @param[in] aPhi Position of the calorimeter cell in phi
-   *   @return ID (phi) of a tower
-   */
-  int idPhi(float aPhi) const;
-  /**  Get the eta position of the centre of the tower.
-   *   @param[in] aIdEta ID (eta) of a tower
-   *   @return Position of the centre of the tower
-   */
-  float eta(int aIdEta) const;
-  /**  Get the phi position of the centre of the tower.
-   *   @param[in] aIdPhi ID (phi) of a tower
-   *   @return Position of the centre of the tower
-   */
-  float phi(int aIdPhi) const;
   /**  Correct way to access the neighbour of the phi tower, taking into account the full coverage in phi.
    *   Full coverage means that first tower in phi, with ID = 0 is a direct neighbour
    *   of the last tower in phi with ID = m_nPhiTower - 1).
@@ -129,30 +89,14 @@ private:
    *   @return  ID of a tower - shifted and corrected (in [0, m_nPhiTower) range)
    */
   unsigned int phiNeighbour(int aIPhi) const;
-  /// Pointer to the geometry service
-  SmartIF<IGeoSvc> m_geoSvc;
-  /// Handle for calo cells (input collection)
-  DataHandle<fcc::CaloHitCollection> m_cells;
   /// Handle for calo clusters (output collection)
   DataHandle<fcc::CaloClusterCollection> m_clusters;
-  /// PhiEta segmentation (owned by DD4hep)
-  DD4hep::DDSegmentation::GridPhiEta* m_segmentation;
+  /// Handle for the tower building tool
+  ToolHandle<ITowerTool> m_towerTool;
   // calorimeter towers
   std::vector<std::vector<float>> m_towers;
   /// Vector of pre-clusters
   std::vector<cluster> m_preClusters;
-  /// Name of the detector readout
-  std::string m_readoutName;
-  /// Name of the fields describing the segmented calorimeter
-  std::vector<std::string> m_fieldNames;
-  /// Values of the fields describing the segmented calorimeter
-  std::vector<int> m_fieldValues;
-  /// Volume ID of the volume with cells to calculate
-  uint64_t m_volumeId;
-  /// Size of the tower in eta
-  float m_deltaEtaTower;
-  /// Size of the tower in phi
-  float m_deltaPhiTower;
   /// number of towers in eta (calculated from m_deltaEtaTower and the eta size of the first layer)
   int m_nEtaTower;
   /// Number of towers in phi (calculated from m_deltaPhiTower)
@@ -181,8 +125,6 @@ private:
   bool m_checkEtaLocalMax;
   /// Flag if references to the cells should be saved
   bool m_saveCells;
-  /// Radius used to calculate cluster position from eta and phi. If not defined, radius from det::utils::tubeDimensions is used
-  double m_innerRadius;
 };
 
 #endif /* RECCALORIMETER_CREATECALOCLUSTERSSLIDINGWINDOW_H */

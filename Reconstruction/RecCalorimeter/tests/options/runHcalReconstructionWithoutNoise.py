@@ -1,8 +1,7 @@
 from Gaudi.Configuration import *
 
 from Configurables import ApplicationMgr, FCCDataSvc, PodioOutput
-
-podioevent   = FCCDataSvc("EventDataSvc", input="output_hcalSim_pi50GeV_eta0_10events.root")
+podioevent = FCCDataSvc("EventDataSvc", input="output_hcalSim_e50GeV_eta0_10events.root")
 
 # reads HepMC text file and write the HepMC::GenEvent to the data service
 from Configurables import PodioInput
@@ -44,15 +43,17 @@ positions2 = CreateMidVolPositions("positions2", readoutName = "BarHCal_Readout_
 positions2.DataInputs.caloCells.Path = "newHCalCells"
 positions2.DataOutputs.caloPositionedHits.Path = "newHCalPositions"
 
-#Create calo clusters
-from Configurables import CreateCaloClustersSlidingWindow
+# Create calo clusters
+from Configurables import CreateCaloClustersSlidingWindow, SingleCaloTowerTool
 from GaudiKernel.PhysicalConstants import pi
+towers = SingleCaloTowerTool("towers",
+                             deltaEtaTower = 0.025, deltaPhiTower = 2*pi/129.,
+                             readoutName = "BarHCal_Readout_phieta",
+                             radiusForPosition = 2910,
+                             OutputLevel = DEBUG)
+towers.DataInputs.cells.Path="newHCalCells"
 createclusters = CreateCaloClustersSlidingWindow("CreateCaloClusters",
-                                                 readoutName = "BarHCal_Readout_phieta",
-                                                 fieldNames = ["system"],
-                                                 fieldValues = [8],
-                                                 radiusForPosition = 2910,
-                                                 deltaEtaTower = 0.025, deltaPhiTower = 2*pi/129.,
+                                                 towerTool = towers,
                                                  nEtaWindow = 9, nPhiWindow = 3,
                                                  nEtaPosition = 9, nPhiPosition = 3,
                                                  nEtaDuplicates = 9, nPhiDuplicates = 3,
@@ -60,10 +61,9 @@ createclusters = CreateCaloClustersSlidingWindow("CreateCaloClusters",
                                                  energyThreshold = 1,
                                                  saveCells = True,
                                                  OutputLevel = DEBUG)
-createclusters.DataInputs.cells.Path="newHCalCells"
 createclusters.DataOutputs.clusters.Path="HCalClusters"
 
-out = PodioOutput("out", filename="output_HCalCellsPositions_reconstruction_noNoise.root",
+out = PodioOutput("out", filename="output_HCalReco_noNoise_e50GeV_eta0_10events.root",
                    OutputLevel = DEBUG)
 out.outputCommands = ["keep *"]
 

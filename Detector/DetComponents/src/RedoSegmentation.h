@@ -31,8 +31,6 @@ class CaloHitCollection;
  *  Cell IDs are rewritten from the old readout (`\b oldReadoutName`) to the new readout (`\b newReadoutName`).
  *  Names of the old segmentation fields need to be passed as a vector '\b oldSegmentationIds'.
  *  Those fields are replaced by the new segmentation.
- *  This algorithm also fills in information about the existing cells in the segmentation if the segmentation is
- *  of type GridPhiEta (essential for the sliding window reconstruction `CreateCaloClustersSlidingWindow`).
  *
  *  For an example see Detector/DetComponents/tests/options/redoSegmentationXYZ.py
  *  and Detector/DetComponents/tests/options/redoSegmentationRPhi.py.

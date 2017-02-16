@@ -33,7 +33,7 @@ StatusCode CreateCaloClustersSlidingWindow::initialize() {
     error() << "Unable to retrieve the tower building tool." << endmsg;
     return StatusCode::FAILURE;
   }
-  // Calo
+  // Get number of calorimeter towers
   auto towerMapSize = m_towerTool->towersNumber();
   m_nEtaTower = towerMapSize[0];
   m_nPhiTower = towerMapSize[1];

@@ -140,54 +140,6 @@ public:
   inline double radiusFromXYZ(const Vector3D& aposition) const {
     return std::sqrt(aposition.X * aposition.X + aposition.Y * aposition.Y);
   }
-  /**  Set the min existing eta ID of cells in the segmentation.
-   *   @param[in] aId Lowest existing cell ID in eta.
-   */
-  inline void setMinEtaExisting(uint aId) {
-    m_minEtaExisting = aId;
-  }
-  /**  Get the min existing eta ID of cells in the segmentation.
-   *   @return Lowest existing cell ID in eta.
-   */
-  inline int minEtaExisting() {
-    return m_minEtaExisting;
-  }
-  /**  Set the max existing eta ID of cells in the segmentation.
-   *   @param[in] aId Highest existing cell ID in eta.
-   */
-  inline void setMaxEtaExisting(uint aId) {
-    m_maxEtaExisting = aId;
-  }
-  /**  Get the max existing eta ID of cells in the segmentation.
-   *   @return Highest existing cell ID in eta.
-   */
-  inline int maxEtaExisting() {
-    return m_maxEtaExisting;
-  }
-  /**  Set the min existing phi ID of cells in the segmentation.
-   *   @param[in] aId Lowest existing cell ID in phi.
-   */
-  inline void setMinPhiExisting(uint aId) {
-    m_minPhiExisting = aId;
-  }
-  /**  Get the min existing phi ID of cells in the segmentation.
-   *   @return Lowest existing cell ID in phi.
-   */
-  inline int minPhiExisting() {
-    return m_minPhiExisting;
-  }
-  /**  Set the max existing phi ID of cells in the segmentation.
-   *   @param[in] aId Highest existing cell ID in phi.
-   */
-  inline void setMaxPhiExisting(uint aId) {
-    m_maxPhiExisting = aId;
-  }
-  /**  Get the max existing phi ID of cells in the segmentation.
-   *   @return Highest existing cell ID in phi.
-   */
-  inline int maxPhiExisting() {
-    return m_maxPhiExisting;
-  }
 
 protected:
   /// determine the pseudorapidity based on the current cell ID
@@ -206,14 +158,6 @@ protected:
   std::string m_etaID;
   /// the field name used for phi
   std::string m_phiID;
-  /// the minimum existing eta id
-  int m_minEtaExisting;
-  /// the maximum existing eta id
-  int m_maxEtaExisting;
-  /// the minimum existing phi id
-  int m_minPhiExisting;
-  /// the maximum existing phi id
-  int m_maxPhiExisting;
 };
 }
 }

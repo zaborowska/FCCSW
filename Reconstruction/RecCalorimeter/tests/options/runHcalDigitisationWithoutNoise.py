@@ -21,7 +21,13 @@ createcells = CreateCaloCells("CreateCaloCells",
 createcells.DataInputs.hits.Path="HCalHits"
 createcells.DataOutputs.cells.Path="HCalCells"
 
-out = PodioOutput("out", filename="output_HCalCells_digitisation_noNoise.root",
+from Configurables import CreateMidVolPositions
+positions = CreateMidVolPositions("positions", readoutName = "BarHCal_Readout", OutputLevel = VERBOSE)
+positions.DataInputs.caloCells.Path = "HCalCells"
+positions.DataOutputs.caloPositionedHits.Path = "HCalPositions"
+
+
+out = PodioOutput("out", filename="output_HCalCellsPositions_digitisation_noNoise.root",
                    OutputLevel = DEBUG)
 out.outputCommands = ["keep *"]
 
@@ -32,15 +38,17 @@ audsvc = AuditorSvc()
 audsvc.Auditors = [chra]
 podioinput.AuditExecute = True
 createcells.AuditExecute = True
+positions.AuditExecute = True
 out.AuditExecute = True
 
 ApplicationMgr(
     TopAlg = [podioinput,
               createcells,
+              positions,
               out
               ],
     EvtSel = 'NONE',
     EvtMax   = 10,
-    ExtSvc = [podioevent, geoservice],
+    ExtSvc = [podioevent, geoservice,],
  )
 

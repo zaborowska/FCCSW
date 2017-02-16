@@ -66,3 +66,9 @@ gaudi_add_test(HcalDigitisationFlatNoise
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                DEPENDS simulateHCal
                FRAMEWORK tests/options/runHcalDigitisationFlatNoise.py)
+
+gaudi_add_test(HcalReconstructionWithoutNoise
+               WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+               ENVIRONMENT LD_PRELOAD+=build.$BINARY_TAG/lib/libDetSegmentation.so
+               DEPENDS simulateHCal
+               FRAMEWORK tests/options/runHcalReconstructionWithoutNoise.py)

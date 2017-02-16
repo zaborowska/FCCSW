@@ -49,6 +49,10 @@
     <readout name="BarHCal_Readout">
       <id>system:4,layer:6,wedge:7,sub_module:2,row:10</id>
     </readout>
+    <readout name="BarHCal_Readout_phieta">
+      <segmentation type="GridPhiEta" grid_size_eta="0.025" phi_bins="129"/>
+      <id>system:4,layer:6,wedge:7,sub_module:2,row:10,eta:-9,phi:-10</id>
+    </readout>
   </readouts>
 
   <detectors>

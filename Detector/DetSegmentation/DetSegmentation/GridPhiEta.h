@@ -141,7 +141,7 @@ public:
     return std::sqrt(aposition.X * aposition.X + aposition.Y * aposition.Y);
   }
 
-private:
+protected:
   /// determine the pseudorapidity based on the current cell ID
   double eta() const;
   /// determine the azimuthal angle phi based on the current cell ID

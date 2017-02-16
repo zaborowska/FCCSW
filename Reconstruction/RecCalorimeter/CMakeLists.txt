@@ -75,3 +75,14 @@ gaudi_add_test(HCalReconstructionWithoutNoise
                ENVIRONMENT LD_PRELOAD+=build.$BINARY_TAG/lib/libDetSegmentation.so
                DEPENDS simulateHCal
                FRAMEWORK tests/options/runHcalReconstructionWithoutNoise.py)
+
+gaudi_add_test(simulateCombinedCalo
+               WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+               ENVIRONMENT LD_PRELOAD+=build.$BINARY_TAG/lib/libDetSegmentation.so
+               FRAMEWORK tests/options/geant_fullsim_combinedCalo_singleparticles.py)
+
+gaudi_add_test(CombinedCaloReconstructionWithoutNoise
+               WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+               ENVIRONMENT LD_PRELOAD+=build.$BINARY_TAG/lib/libDetSegmentation.so
+               DEPENDS simulateHCal
+               FRAMEWORK tests/options/runCombinedReconstructionWithoutNoise.py)

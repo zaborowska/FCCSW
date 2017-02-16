@@ -12,14 +12,14 @@ podioevent = FCCDataSvc("EventDataSvc")
 # DD4hep geometry service
 from Configurables import GeoSvc
 geoservice = GeoSvc("GeoSvc", detectors=[ 'file:Detector/DetFCChhBaseline1/compact/FCChh_DectEmptyMaster.xml',
-                                          'file:Detector/DetFCChhECalSimple/compact/FCChh_ECalBarrel_Mockup.xml'
+                                          'file:Detector/DetFCChhECalSimple/compact/FCChh_ECalBarrel_Mockup.xml',
                                           'file:Detector/DetFCChhHCalTile/compact/FCChh_HCalBarrel_TileCal.xml'],
                     OutputLevel = INFO)
 
 # Geant4 service
 # Configures the Geant simulation: geometry, physics list and user actions
 from Configurables import SimG4Svc
-geantservice = SimG4Svc("SimG4Svc"))
+geantservice = SimG4Svc("SimG4Svc")
 
 # Magnetic field
 from Configurables import SimG4ConstantMagneticFieldTool
@@ -41,7 +41,7 @@ from Configurables import SimG4Alg, SimG4SaveCalHits
 saveecaltool = SimG4SaveCalHits("saveECalHits", readoutNames = ["ECalHitsPhiEta"])
 saveecaltool.DataOutputs.positionedCaloHits.Path = "ECalPositionedHits"
 saveecaltool.DataOutputs.caloHits.Path = "ECalHits"
-savehcaltool = SimG4SaveCalHits("saveECalHits", readoutNames = ["BarHCal_Readout"])
+savehcaltool = SimG4SaveCalHits("saveHCalHits", readoutNames = ["BarHCal_Readout"])
 savehcaltool.DataOutputs.positionedCaloHits.Path = "HCalPositionedHits"
 savehcaltool.DataOutputs.caloHits.Path = "HCalHits"
 

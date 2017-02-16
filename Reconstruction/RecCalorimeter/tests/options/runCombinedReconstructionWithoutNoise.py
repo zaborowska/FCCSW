@@ -2,11 +2,11 @@ from Gaudi.Configuration import *
 
 from Configurables import ApplicationMgr, FCCDataSvc, PodioOutput
 
-podioevent   = FCCDataSvc("EventDataSvc", input="output_ecalSim_e50GeV_eta0_10events.root")
+podioevent   = FCCDataSvc("EventDataSvc", input="output_combinedSim_e50GeV_eta0_10events.root")
 
 # reads HepMC text file and write the HepMC::GenEvent to the data service
 from Configurables import PodioInput
-podioinput = PodioInput("PodioReader", collections=["ECalHits", "ECalPositionedHits"], OutputLevel=DEBUG)
+podioinput = PodioInput("PodioReader", collections=["ECalHits", "ECalPositionedHits", "HCalHits", "HCalPositionedHits"], OutputLevel=DEBUG)
 
 from Configurables import GeoSvc
 geoservice = GeoSvc("GeoSvc", detectors=[  'file:Detector/DetFCChhBaseline1/compact/FCChh_DectEmptyMaster.xml',
@@ -81,10 +81,11 @@ positions2.DataOutputs.caloPositionedHits.Path = "newHCalPositions"
 from Configurables import CreateCaloClustersSlidingWindow, CombinedCaloTowerTool
 from GaudiKernel.PhysicalConstants import pi
 towers = CombinedCaloTowerTool("towers",
-                             deltaEtaTower = 0.01, deltaPhiTower = 2*pi/629.,
-                             ecalReadoutName = ecalReadoutName,
-                             hcalReadoutName = hcalReadoutName + "_phieta",
-                             OutputLevel=DEBUG)
+                               deltaEtaTower = 0.025, deltaPhiTower = 2*pi/129.,
+                               ecalReadoutName = ecalReadoutName,
+                               hcalReadoutName = hcalReadoutName + "_phieta",
+                               etaMax = 2,
+                               OutputLevel=DEBUG)
 towers.DataInputs.ecalCells.Path="ECalCells"
 towers.DataInputs.hcalCells.Path="newHCalCells"
 createclusters = CreateCaloClustersSlidingWindow("CreateCaloClusters",
@@ -107,13 +108,21 @@ chra = ChronoAuditor()
 audsvc = AuditorSvc()
 audsvc.Auditors = [chra]
 podioinput.AuditExecute = True
+createEcells.AuditExecute = True
+createHcells.AuditExecute = True
+positions.AuditExecute = True
+resegment.AuditExecute = True
+positions2.AuditExecute = True
 createclusters.AuditExecute = True
-createcells.AuditExecute = True
 out.AuditExecute = True
 
 ApplicationMgr(
     TopAlg = [podioinput,
-              createcells,
+              createEcells,
+              createHcells,
+              positions,
+              resegment,
+              positions2,
               createclusters,
               out
               ],

@@ -53,8 +53,7 @@ from GaudiKernel.PhysicalConstants import pi
 towers = SingleCaloTowerTool("towers",
                              deltaEtaTower = 0.01, deltaPhiTower = 2*pi/629.,
                              readoutName = ecalReadoutName,
-                             fieldNames = ecalFieldNames,
-                             fieldValues = ecalFieldValues)
+                             etaMax = 1.65103)
 towers.DataInputs.cells.Path="caloCells"
 createclusters = CreateCaloClustersSlidingWindow("CreateCaloClusters",
                                                  towerTool = towers,

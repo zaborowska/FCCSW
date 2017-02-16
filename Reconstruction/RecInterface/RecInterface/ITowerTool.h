@@ -9,7 +9,7 @@
 
 /** @class ITowerTool RecInterface/RecInterface/ITowerTool.h ITowerTool.h
  *
- *  Abstract interface to tower building tool
+ *  Abstract interface to tower building tool.
  *
  *  @author Anna Zaborowska
  */
@@ -17,11 +17,32 @@
 class ITowerTool: virtual public IAlgTool {
 public:
   DeclareInterfaceID(ITowerTool, 1, 0);
-
-  virtual std::array<uint,2> prepareTowers(uint m_nEtaFinal, uint m_nPhiFinal) = 0;
+  /**  Find number of calorimeter towers.
+   *   @return Array containing number of towers in eta and phi.
+   */
+  virtual std::array<int,2> towersNumber() = 0;
+  /**  Find number of calorimeter towers in eta for current event.
+   *   @return Number of towers in eta for current event.
+   */
+  virtual int etaTowersNumber() = 0;
+  /**  Build calorimeter towers.
+   *   @param[out] aTowers Calorimeter towers.
+   *   @return Size of the cell collection.
+   */
   virtual uint buildTowers(std::vector<std::vector<float>> & aTowers) = 0;
+  /**  Find cells belonging to a cluster.
+   *   @param[in] aEta Position of the middle tower of a cluster in eta
+   *   @param[in] aPhi Position of the middle tower of a cluster in phi
+   *   @param[in] aHalfEtaFinal Half size of cluster in eta (in units of tower size). Cluster size is 2*aHalfEtaFinal+1
+   *   @param[in] aHalfPhiFinal Half size of cluster in phi (in units of tower size). Cluster size is 2*aHalfPhiFinal+1
+   *   @param[out] aEdmCluster Cluster where cells are attached to
+   */
   virtual void matchCells(float, float, uint, uint, fcc::CaloCluster& aEdmCluster) = 0;
-  virtual float radiusForPosition() const = 0;/**  Get the tower IDs in eta.
+  /**  Get the radius for the position calculation.
+   *   @return Radius
+   */
+  virtual float radiusForPosition() const = 0;
+  /**  Get the tower IDs in eta.
    *   @param[in] aEta Position of the calorimeter cell in eta
    *   @return ID (eta) of a tower
    */

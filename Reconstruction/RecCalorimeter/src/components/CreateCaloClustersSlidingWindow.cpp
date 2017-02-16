@@ -9,7 +9,7 @@
 DECLARE_ALGORITHM_FACTORY(CreateCaloClustersSlidingWindow)
 
 CreateCaloClustersSlidingWindow::CreateCaloClustersSlidingWindow(const std::string& name, ISvcLocator* svcLoc)
-    : GaudiAlgorithm(name, svcLoc) {
+: GaudiAlgorithm(name, svcLoc), m_recalculateEtaTowers(true) {
   declareOutput("clusters", m_clusters, "calo/clusters");
   declareProperty("towerTool", m_towerTool);
   declarePrivateTool(m_towerTool, "SingleCaloTowerTool");
@@ -22,8 +22,6 @@ CreateCaloClustersSlidingWindow::CreateCaloClustersSlidingWindow(const std::stri
   declareProperty("nEtaFinal", m_nEtaFinal = 5);
   declareProperty("nPhiFinal", m_nPhiFinal = 15);
   declareProperty("energyThreshold", m_energyThreshold = 3);
-  declareProperty("checkPhiLocalMax", m_checkPhiLocalMax = true);
-  declareProperty("checkEtaLocalMax", m_checkEtaLocalMax = true);
   declareProperty("saveCells", m_saveCells = false);
 }
 
@@ -35,22 +33,32 @@ StatusCode CreateCaloClustersSlidingWindow::initialize() {
     error() << "Unable to retrieve the tower building tool." << endmsg;
     return StatusCode::FAILURE;
   }
+  // Calo
+  auto towerMapSize = m_towerTool->towersNumber();
+  m_nEtaTower = towerMapSize[0];
+  m_nPhiTower = towerMapSize[1];
+  // set flag used later to check if recalculation of number of towers for each event should be done
+  m_recalculateEtaTowers = m_nEtaTower;
+  debug() << "Number of calorimeter towers (eta x phi) : " << m_nEtaTower << " x " << m_nPhiTower << endmsg;
   info() << "CreateCaloClustersSlidingWindow initialized" << endmsg;
   return StatusCode::SUCCESS;
 }
 
 StatusCode CreateCaloClustersSlidingWindow::execute() {
-  // 1. Get calorimeter towers (calorimeter grid in eta phi, all layers merged)
-  auto towerMapSize = m_towerTool->prepareTowers(m_nEtaFinal, m_nPhiFinal);
-  m_nEtaTower = towerMapSize[0];
-  m_nPhiTower = towerMapSize[1];
+  // 1. Create calorimeter towers (calorimeter grid in eta phi, all layers merged)
+  if( ! m_recalculateEtaTowers) { // make sure the number of cells is defined
+    m_nEtaTower = m_towerTool->etaTowersNumber();
+    // make sure that the tower size in eta is larger than the seeding sliding window
+    if(m_nEtaTower < m_nEtaWindow) {
+      m_nEtaTower = m_nEtaWindow;
+    }
+    debug() << "Recalculated number of calorimeter towers (eta x phi) : " << m_nEtaTower << " x " << m_nPhiTower << endmsg;
+  }
   m_towers.assign(m_nEtaTower, std::vector<float>(m_nPhiTower, 0));
   if( m_towerTool->buildTowers(m_towers) == 0 ) {
      debug() << "Empty cell collection." << endmsg;
      return StatusCode::SUCCESS;
   }
-  debug() << "Number of calorimeter towers (eta x phi) : " << m_towers.size() << " x " << m_towers[0].size() << endmsg;
-
   // 2. Find local maxima with sliding window, build preclusters, calculate their barycentre position
   // calculate the sum of first m_nEtaWindow bins in eta, for each phi tower
   std::vector<float> sumOverEta(m_nPhiTower, 0);
@@ -94,45 +102,41 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
       // if energy is above threshold, it may be a precluster
       if (sumWindow > m_energyThreshold) {
         // test local maximum in phi
-        if (m_checkPhiLocalMax) {
-          // check closest neighbour on the right
-          if (sumOverEta[phiNeighbour(iPhi - halfPhiWin)] < sumOverEta[phiNeighbour(iPhi + halfPhiWin + 1)]) {
-            toRemove = true;
+        // check closest neighbour on the right
+        if (sumOverEta[phiNeighbour(iPhi - halfPhiWin)] < sumOverEta[phiNeighbour(iPhi + halfPhiWin + 1)]) {
+          toRemove = true;
+        }
+        // check closest neighbour on the left
+        if (sumOverEta[phiNeighbour(iPhi + halfPhiWin)] < sumOverEta[phiNeighbour(iPhi - halfPhiWin - 1)]) {
+          toRemove = true;
+        }
+        // test local maximum in eta
+        // check closest neighbour on the right (if it is not the first window)
+        if (iEta > halfEtaWin) {
+          for (int iPhiWindowLocalCheck = iPhi - halfPhiWin; iPhiWindowLocalCheck <= iPhi + halfPhiWin;
+               iPhiWindowLocalCheck++) {
+            sumPhiSlicePrevEtaWin += m_towers[iEta - halfEtaWin - 1][phiNeighbour(iPhiWindowLocalCheck)];
+            sumLastPhiSlice += m_towers[iEta + halfEtaWin][phiNeighbour(iPhiWindowLocalCheck)];
           }
-          // check closest neighbour on the left
-          if (sumOverEta[phiNeighbour(iPhi + halfPhiWin)] < sumOverEta[phiNeighbour(iPhi - halfPhiWin - 1)]) {
+          if (sumPhiSlicePrevEtaWin > sumLastPhiSlice) {
             toRemove = true;
           }
         }
-        // test local maximum in eta (if it wasn't already marked as to be removed)
-        if (m_checkEtaLocalMax && (!toRemove)) {
-          // check closest neighbour on the right (if it is not the first window)
-          if (iEta > halfEtaWin) {
-            for (int iPhiWindowLocalCheck = iPhi - halfPhiWin; iPhiWindowLocalCheck <= iPhi + halfPhiWin;
-                 iPhiWindowLocalCheck++) {
-              sumPhiSlicePrevEtaWin += m_towers[iEta - halfEtaWin - 1][phiNeighbour(iPhiWindowLocalCheck)];
-              sumLastPhiSlice += m_towers[iEta + halfEtaWin][phiNeighbour(iPhiWindowLocalCheck)];
-            }
-            if (sumPhiSlicePrevEtaWin > sumLastPhiSlice) {
-              toRemove = true;
-            }
+        // check closest neighbour on the left (if it is not the last window)
+        if (iEta < m_nEtaTower - halfEtaWin - 1) {
+          for (int iPhiWindowLocalCheck = iPhi - halfPhiWin; iPhiWindowLocalCheck <= iPhi + halfPhiWin;
+               iPhiWindowLocalCheck++) {
+            sumPhiSliceNextEtaWin += m_towers[iEta + halfEtaWin + 1][phiNeighbour(iPhiWindowLocalCheck)];
+            sumFirstPhiSlice += m_towers[iEta - halfEtaWin][phiNeighbour(iPhiWindowLocalCheck)];
           }
-          // check closest neighbour on the left (if it is not the last window)
-          if (iEta < m_nEtaTower - halfEtaWin - 1) {
-            for (int iPhiWindowLocalCheck = iPhi - halfPhiWin; iPhiWindowLocalCheck <= iPhi + halfPhiWin;
-                 iPhiWindowLocalCheck++) {
-              sumPhiSliceNextEtaWin += m_towers[iEta + halfEtaWin + 1][phiNeighbour(iPhiWindowLocalCheck)];
-              sumFirstPhiSlice += m_towers[iEta - halfEtaWin][phiNeighbour(iPhiWindowLocalCheck)];
-            }
-            if (sumPhiSliceNextEtaWin > sumFirstPhiSlice) {
-              toRemove = true;
-            }
+          if (sumPhiSliceNextEtaWin > sumFirstPhiSlice) {
+            toRemove = true;
           }
-          sumFirstPhiSlice = 0;
-          sumLastPhiSlice = 0;
-          sumPhiSlicePrevEtaWin = 0;
-          sumPhiSliceNextEtaWin = 0;
         }
+        sumFirstPhiSlice = 0;
+        sumLastPhiSlice = 0;
+        sumPhiSlicePrevEtaWin = 0;
+        sumPhiSliceNextEtaWin = 0;
         // Build precluster
         if (!toRemove) {
           // Calculate barycentre position (usually smaller window used to reduce noise influence)
@@ -155,7 +159,7 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
             // Recalculating the energy within the final cluster size
             for (int ipEta = idEtaFin - halfEtaFin; ipEta <= idEtaFin + halfEtaFin; ipEta++) {
               for (int ipPhi = idPhiFin - halfPhiFin; ipPhi <= idPhiFin + halfPhiFin; ipPhi++) {
-                if (ipEta >= 0 && ipEta < m_nEtaTower) {
+                if (ipEta >= 0 && ipEta < m_nEtaTower) { // check if we are not outside of map in eta
                   sumEnergyFin += m_towers[ipEta][phiNeighbour(ipPhi)];
                 }
               }
@@ -229,7 +233,7 @@ StatusCode CreateCaloClustersSlidingWindow::execute() {
             << edmClusterCore.position.y << " z " << edmClusterCore.position.z << " energy " << edmClusterCore.energy
             << endmsg;
     if (m_saveCells) {
-       // loop over cells and see if they belong here
+       // fins cells that belong to the cluster
        m_towerTool->matchCells(clu.eta, clu.phi, halfEtaWin, halfPhiWin, edmCluster);
     }
   }

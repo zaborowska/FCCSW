@@ -119,12 +119,10 @@ private:
   int m_nPhiFinal;
   /// Energy threshold for cluster finding
   float m_energyThreshold;
-  /// Flag if a check on local maxima in phi should be done (temporary, to test the algorithm)
-  bool m_checkPhiLocalMax;
-  /// Flag if a check on local maxima in eta should be done (temporary, to test the algorithm)
-  bool m_checkEtaLocalMax;
   /// Flag if references to the cells should be saved
   bool m_saveCells;
+  /// Flag if in each event the number of eta towers should be recalculated (true: default, false: if m_towerTool has etaMax defined)
+  bool m_recalculateEtaTowers;
 };
 
 #endif /* RECCALORIMETER_CREATECALOCLUSTERSSLIDINGWINDOW_H */

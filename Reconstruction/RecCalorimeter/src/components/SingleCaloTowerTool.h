@@ -11,12 +11,10 @@
 class IGeoSvc;
 
 // datamodel
-#include "datamodel/CaloHit.h"
 namespace fcc {
 class CaloHitCollection;
 }
 
-#include "DD4hep/Readout.h"
 namespace DD4hep {
 namespace DDSegmentation {
 class Segmentation;
@@ -27,29 +25,62 @@ class Segmentation;
  *
  *  Tool building the calorimeter towers for the sliding window algorithm.
  *  Towers are built of cells in eta-phi, summed over all radial layers.
+ *  A tower contains all cells within certain eta and phi (tower size: '\b deltaEtaTower', '\b deltaPhiTower').
+ *  Distance in r plays no role, however `\b radiusForPosition` needs to be defined
+ *  (e.g. to inner radius of the detector) for the cluster position calculation. By default the radius is equal to 1.
+ *
  *  This tool creates towers from a single cell collection (from one calorimeter).
  *
  *  For more explanation please [see reconstruction documentation](@ref md_reconstruction_doc_reccalorimeter).
  *
  *  @author Anna Zaborowska
+ *  @author Jana Faltova
  */
 
 class SingleCaloTowerTool : public GaudiTool, virtual public ITowerTool {
 public:
   SingleCaloTowerTool(const std::string& type, const std::string& name, const IInterface* parent);
   virtual ~SingleCaloTowerTool() = default;
-  virtual StatusCode initialize() final;
-  virtual StatusCode finalize() final;
-  /**  Prepare calorimeter towers.
-   *  Create empty towers for the calorimeter.
+  /**  Initialize.
+   *   @return status code
    */
-  virtual std::array<uint,2> prepareTowers(uint m_nEtaFinal, uint m_nPhiFinal) final;
+  virtual StatusCode initialize() final;
+  /**  Finalize.
+   *   @return status code
+   */
+  virtual StatusCode finalize() final;
+  /**  Find number of calorimeter towers.
+   *   Number of towers in phi is calculated from full azimuthal angle (2 pi) and the size of tower in phi ('\b deltaPhiTower').
+   *   Number of towers in eta is calculated from maximum detector eta ('\b etaMax`) and the size of tower in eta ('\b deltaEtaTower').
+   *   If max eta is undefined, 0 is returned. In this case number of eta towers should be calculated for each event separately (etaTowersNumber()).
+   *   @return Array containing number of towers in eta and phi.
+   */
+  virtual std::array<int,2> towersNumber() final;
+  /**  Find number of calorimeter towers in eta for current event.
+   *   Cell collection is searched for a highest eta (absolute value).
+   *   @return Number of towers in eta for current event.
+   */
+  virtual int etaTowersNumber() final;
   /**  Build calorimeter towers.
-   *  Tower is segmented in eta and phi, with the energy from all layers (no r segmentation).
-   *  Cuurently the cells need to be included only in one tower.
-   *  TODO: split cell energy into more towers if cell size is larger than the tower
+   *   Tower is segmented in eta and phi, with the energy from all layers (no r segmentation).
+   *   Currently the size of tower needs to be a multiple of a cell size (so each cell belongs to only one tower).
+   *   TODO: split cell energy into more towers if cell size is larger than the tower.
+   *   @param[out] aTowers Calorimeter towers.
+   *   @return Size of the cell collection.
    */
   virtual uint buildTowers(std::vector<std::vector<float>> & aTowers) final;
+  /**  Find cells belonging to a cluster.
+   *   @param[in] aEta Position of the middle tower of a cluster in eta
+   *   @param[in] aPhi Position of the middle tower of a cluster in phi
+   *   @param[in] aHalfEtaFinal Half size of cluster in eta (in units of tower size). Cluster size is 2*aHalfEtaFinal+1
+   *   @param[in] aHalfPhiFinal Half size of cluster in phi (in units of tower size). Cluster size is 2*aHalfPhiFinal+1
+   *   @param[out] aEdmCluster Cluster where cells are attached to
+   */
+  virtual void matchCells(float aEta, float aPhi, uint aHalfEtaFinal, uint aHalfPhiFinal, fcc::CaloCluster& aEdmCluster) final;
+  /**  Get the radius for the position calculation.
+   *   @return Radius
+   */
+  virtual float radiusForPosition() const final;
   /**  Get the tower IDs in eta.
    *   @param[in] aEta Position of the calorimeter cell in eta
    *   @return ID (eta) of a tower
@@ -70,8 +101,6 @@ public:
    *   @return Position of the centre of the tower
    */
   virtual float phi(int aIdPhi) const final;
-  virtual void matchCells(float aEta, float aPhi, uint aHalfEtaFinal, uint aHalfPhiFinal, fcc::CaloCluster& aEdmCluster) final;
-  virtual float radiusForPosition() const final;
 private:
   /// Handle for calo cells (input collection)
   DataHandle<fcc::CaloHitCollection> m_cells;
@@ -79,21 +108,17 @@ private:
   SmartIF<IGeoSvc> m_geoSvc;
   /// Name of the detector readout
   std::string m_readoutName;
-  /// Name of the fields describing the segmented calorimeter
-  std::vector<std::string> m_fieldNames;
-  /// Values of the fields describing the segmented calorimeter
-  std::vector<int> m_fieldValues;
   /// PhiEta segmentation (owned by DD4hep)
   DD4hep::DDSegmentation::GridPhiEta* m_segmentation;
-  /// Radius used to calculate cluster position from eta and phi. If not defined, radius from det::utils::tubeDimensions is used
-  double m_innerRadius;
-  /// Volume ID of the volume with cells to calculate
-  uint64_t m_volumeId;
+  /// Radius used to calculate cluster position from eta and phi
+  double m_radius;
+  /// Maximum eta of detector
+  float m_etaMax;
   /// Size of the tower in eta
   float m_deltaEtaTower;
   /// Size of the tower in phi
   float m_deltaPhiTower;
-  /// number of towers in eta (calculated from m_deltaEtaTower and the eta size of the first layer)
+  /// number of towers in eta (calculated from m_deltaEtaTower and m_etaMax)
   int m_nEtaTower;
   /// Number of towers in phi (calculated from m_deltaPhiTower)
   int m_nPhiTower;

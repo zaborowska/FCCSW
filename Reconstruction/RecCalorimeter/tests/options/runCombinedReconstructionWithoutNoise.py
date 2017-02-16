@@ -28,9 +28,9 @@ ecalFieldValues=[5,1,1,1]
 # readout name
 hcalReadoutName = "BarHCal_Readout"
 # active material identifier name
-hcalIdentifierName = ["layer", "wedge","row","sub_module"]
- # active material volume name
-hcalVolumeName = ["layer", "wedge","subWedge", "module_component"]
+hcalIdentifierName = ["layer", "module","row","tile"]
+# active material volume name
+hcalVolumeName = ["layer", "module","wedge", "Polystyrene_tile"]
 # ECAL bitfield names & values
 hcalFieldNames=["system"]
 

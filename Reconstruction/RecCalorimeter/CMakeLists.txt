@@ -29,25 +29,25 @@ gaudi_add_test(simulateECalForReconstruction
                ENVIRONMENT LD_PRELOAD+=build.$BINARY_TAG/lib/libDetSegmentation.so
                FRAMEWORK tests/options/geant_fullsim_ecal_singleparticles.py)
 
-gaudi_add_test(EcalReconstructionFlatNoise
+gaudi_add_test(ECalReconstructionFlatNoise
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                ENVIRONMENT LD_PRELOAD+=build.$BINARY_TAG/lib/libDetSegmentation.so
                DEPENDS simulateECalForReconstruction
                FRAMEWORK tests/options/runEcalReconstructionFlatNoise.py)
 
-gaudi_add_test(EcalReconstructionWithoutNoise
+gaudi_add_test(ECalReconstructionWithoutNoise
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                ENVIRONMENT LD_PRELOAD+=build.$BINARY_TAG/lib/libDetSegmentation.so
                DEPENDS simulateECalForReconstruction
                FRAMEWORK tests/options/runEcalReconstructionWithoutNoise.py)
 
-gaudi_add_test(EcalReconstructionCheckNumClusters
+gaudi_add_test(ECalReconstructionCheckNumClusters
                ENVIRONMENT PYTHONPATH+=$ENV{PODIO}/python
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                COMMAND python Reconstruction/RecCalorimeter/tests/scripts/ecalRecoCheckNumClusters.py
                DEPENDS runEcalReconstructionFlatNoise runEcalReconstructionWithoutNoise)
 
-gaudi_add_test(EcalReconstructionNoiseFromFile
+gaudi_add_test(ECalReconstructionNoiseFromFile
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                ENVIRONMENT LD_PRELOAD+=build.$BINARY_TAG/lib/libDetSegmentation.so
                DEPENDS simulateECalForReconstruction
@@ -55,19 +55,22 @@ gaudi_add_test(EcalReconstructionNoiseFromFile
 
 gaudi_add_test(simulateHCal
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+               ENVIRONMENT LD_PRELOAD+=build.$BINARY_TAG/lib/libDetSegmentation.so
                FRAMEWORK tests/options/geant_fullsim_hcal_singleparticles.py)
 
-gaudi_add_test(HcalDigitisationWithoutNoise
+gaudi_add_test(HCalDigitisationWithoutNoise
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+               ENVIRONMENT LD_PRELOAD+=build.$BINARY_TAG/lib/libDetSegmentation.so
                DEPENDS simulateHCal
                FRAMEWORK tests/options/runHcalDigitisationWithoutNoise.py)
 
-gaudi_add_test(HcalDigitisationFlatNoise
+gaudi_add_test(HCalDigitisationFlatNoise
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+               ENVIRONMENT LD_PRELOAD+=build.$BINARY_TAG/lib/libDetSegmentation.so
                DEPENDS simulateHCal
                FRAMEWORK tests/options/runHcalDigitisationFlatNoise.py)
 
-gaudi_add_test(HcalReconstructionWithoutNoise
+gaudi_add_test(HCalReconstructionWithoutNoise
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                ENVIRONMENT LD_PRELOAD+=build.$BINARY_TAG/lib/libDetSegmentation.so
                DEPENDS simulateHCal

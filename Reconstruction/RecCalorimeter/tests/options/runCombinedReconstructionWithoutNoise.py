@@ -2,7 +2,7 @@ from Gaudi.Configuration import *
 
 from Configurables import ApplicationMgr, FCCDataSvc, PodioOutput
 
-podioevent   = FCCDataSvc("EventDataSvc", input="output_combinedSim_e50GeV_eta0_10events.root")
+podioevent   = FCCDataSvc("EventDataSvc", input="output_combinedSim_pi100GeV_eta0_10events.root")
 
 # reads HepMC text file and write the HepMC::GenEvent to the data service
 from Configurables import PodioInput
@@ -36,19 +36,21 @@ hcalFieldNames=["system"]
 
 #Configure tools for calo reconstruction
 from Configurables import CalibrateCaloHitsTool
-calibcells = CalibrateCaloHitsTool("CalibrateCaloHitsTool", invSamplingFraction="5.4")
+calibEcells = CalibrateCaloHitsTool("CalibrateECal", invSamplingFraction="5.4")
+calibHcells = CalibrateCaloHitsTool("CalibrateHCal", invSamplingFraction="33")
 
 from Configurables import CreateCaloCells
 createEcells = CreateCaloCells("CreateECaloCells",
                               doCellCalibration=True,
-                              calibTool=calibcells,
+                              calibTool=calibEcells,
                               addCellNoise=False, filterCellNoise=False,
                               OutputLevel=DEBUG)
 createEcells.DataInputs.hits.Path="ECalHits"
 createEcells.DataOutputs.cells.Path="ECalCells"
 
 createHcells = CreateCaloCells("CreateHCaloCells",
-                              doCellCalibration = False,
+                              doCellCalibration=True,
+                              calibTool=calibHcells,
                               addCellNoise = False, filterCellNoise = False,
                               OutputLevel = DEBUG)
 createHcells.DataInputs.hits.Path="HCalHits"
@@ -81,7 +83,7 @@ positions2.DataOutputs.caloPositionedHits.Path = "newHCalPositions"
 from Configurables import CreateCaloClustersSlidingWindow, CombinedCaloTowerTool
 from GaudiKernel.PhysicalConstants import pi
 towers = CombinedCaloTowerTool("towers",
-                               deltaEtaTower = 0.025, deltaPhiTower = 2*pi/129.,
+                               deltaEtaTower = 0.01, deltaPhiTower = 2*pi/629.,
                                ecalReadoutName = ecalReadoutName,
                                hcalReadoutName = hcalReadoutName + "_phieta",
                                etaMax = 2,
@@ -93,12 +95,12 @@ createclusters = CreateCaloClustersSlidingWindow("CreateCaloClusters",
                                                  nEtaWindow = 5, nPhiWindow = 15,
                                                  nEtaPosition = 3, nPhiPosition = 3,
                                                  nEtaDuplicates = 5, nPhiDuplicates = 15,
-                                                 nEtaFinal = 5, nPhiFinal = 15,
-                                                 energyThreshold = 7,
+                                                 nEtaFinal = 9, nPhiFinal = 25,
+                                                 energyThreshold = 3,
                                                  OutputLevel = DEBUG)
 createclusters.DataOutputs.clusters.Path="caloClusters"
 
-out = PodioOutput("out", filename="output_ecalReco_noNoise_test.root",
+out = PodioOutput("out", filename="output_combinedReco_noNoise_test.root",
                    OutputLevel=DEBUG)
 out.outputCommands = ["keep *"]
 

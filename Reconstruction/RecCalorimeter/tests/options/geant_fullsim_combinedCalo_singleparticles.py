@@ -1,5 +1,5 @@
 # variables energy (energy in MeV!!!!), magnetic_field (0,1), num_events (number of events) to be defined before running
-energy = 50000
+energy = 100000
 magnetic_field = 0
 num_events = 10
 
@@ -48,7 +48,7 @@ savehcaltool.DataOutputs.caloHits.Path = "HCalHits"
 # next, create the G4 algorithm, giving the list of names of tools ("XX/YY")
 from Configurables import SimG4SingleParticleGeneratorTool
 pgun=SimG4SingleParticleGeneratorTool("SimG4SingleParticleGeneratorTool",saveEdm=True,
-                particleName="e-",energyMin=energy,energyMax=energy,etaMin=0.,etaMax=0.,
+                particleName="pi-",energyMin=energy,energyMax=energy,etaMin=0.,etaMax=0.,
                 OutputLevel =DEBUG)
 
 geantsim = SimG4Alg("SimG4Alg",
@@ -61,7 +61,7 @@ from Configurables import PodioOutput
 out = PodioOutput("out",
                    OutputLevel=DEBUG)
 out.outputCommands = ["keep *"]
-out.filename = "output_combinedSim_e50GeV_eta0_10events.root"
+out.filename = "output_combinedSim_pi100GeV_eta0_10events.root"
 
 #CPU information
 from Configurables import AuditorSvc, ChronoAuditor

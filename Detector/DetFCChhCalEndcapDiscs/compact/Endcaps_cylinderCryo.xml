@@ -47,7 +47,7 @@
     <constant name="EMEC_readout_thickness" value="1*mm"/>
     <!-- hadronic calorimeter: HEC -->
     <constant name="HEC_z1" value="EMEC_z2 + BathThicknessMiddle"/>
-    <constant name="HEC_z2" value="CryoEndcap_z2 - CryoThicknessBack - BathThicknessBack"/>
+    <constant name="HEC_z2" value="CryoEndcap_z2 - CryoThicknessBack - BathThicknessBack - 25*cm"/>
     <constant name="HEC_rmin1" value="HEC_z1*tan(2*atan(exp(-2.5))) - 10*cm + CryoThicknessInner"/>
     <constant name="HEC_rmin2" value="ExtBarCal_rmin2 + CryoThicknessInner"/>
     <constant name="HEC_rmax" value="ExtBarCal_rmax - CryoThicknessOuter - BathThicknessOuter"/>
@@ -129,7 +129,7 @@
       <sensitive type="SimpleCalorimeterSD"/>
       <dimensions rmin1="HEC_rmin1"  rmin2="HEC_rmin2" rmax="HEC_rmax" dz="(HEC_z2-HEC_z1)/2." z_offset="HEC_z1+(HEC_z2-HEC_z1)/2."/>
       <active thickness="HEC_lAr_thickness">
-        <material name="LAr"/>
+        <material name="LArHcal"/>
       </active>
       <passive>
         <inner thickness="HEC_Cu_thickness" sensitive="false">

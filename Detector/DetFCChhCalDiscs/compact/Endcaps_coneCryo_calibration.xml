@@ -39,7 +39,7 @@
     <constant name="BathThicknessMiddle" value="50*mm"/> <!-- in between of EMEC and HEC -->
     <!-- electromegnetic calorimeter: EMEC -->
     <constant name="EMEC_z1" value="CryoEndcap_z1 + CryoThicknessFront + BathThicknessFront"/>
-    <constant name="EMEC_z2" value="6150*mm"/>
+    <constant name="EMEC_z2" value="6020*mm"/>
     <constant name="EMEC_rmin1" value="CryoEndcap_front_rmin2 + CryoThicknessInner + BathThicknessFront*tan(2*atan(exp(-2.5)))"/>
     <constant name="EMEC_rmin2" value="EMEC_z2*tan(2*atan(exp(-2.5))) - 10*cm + CryoThicknessInner"/>
     <constant name="EMEC_rmax" value="ExtBarCal_rmax - CryoThicknessOuter - BathThicknessOuter"/>

@@ -146,6 +146,10 @@ void buildOneSide(MsgStream& lLog, DD4hep::Geometry::LCDD& aLcdd, DD4hep::Geomet
       passiveGluePhysVolBelow.addPhysVolID("subtype", 3);
       passiveGluePhysVolAbove.addPhysVolID("subtype", 4);
     }
+    else if (passive.isSensitive()) {
+        lLog << MSG::INFO << "Passive volume set as sensitive" << endmsg;
+        passiveVol.setSensitiveDetector(aSensDet);
+    }
     DD4hep::Geometry::PlacedVolume passivePhysVol =
         aEnvelope.placeVolume(passiveVol, DD4hep::Geometry::Position(0, 0, zOffset));
     passivePhysVol.addPhysVolID("layer", iDiscs);

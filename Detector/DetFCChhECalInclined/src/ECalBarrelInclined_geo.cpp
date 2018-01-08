@@ -29,6 +29,12 @@ static DD4hep::Geometry::Ref_t createECalBarrelInclined(DD4hep::Geometry::LCDD& 
   DD4hep::XML::Dimension cryoDim(cryostat.dimensions());
   double cryoThicknessFront = cryoDim.rmin2() - cryoDim.rmin1();
   double cryoThicknessBack = cryoDim.rmax2() - cryoDim.rmax1();
+  DD4hep::XML::DetElement cryoFront = cryostat.child(_Unicode(front));
+  DD4hep::XML::DetElement cryoBack = cryostat.child(_Unicode(back));
+  DD4hep::XML::DetElement cryoSide = cryostat.child(_Unicode(side));
+  bool cryoFrontSensitive = cryoFront.isSensitive();
+  bool cryoBackSensitive = cryoBack.isSensitive();
+  bool cryoSideSensitive = cryoSide.isSensitive();
 
   // Retrieve active and passive material data
   DD4hep::XML::DetElement calo = aXmlElement.child(_Unicode(calorimeter));
@@ -75,36 +81,70 @@ static DD4hep::Geometry::Ref_t createECalBarrelInclined(DD4hep::Geometry::LCDD& 
   double passiveThickness = passiveInnerThickness + passiveOuterThickness + passiveGlueThickness;
   double angle = passive.rotation().angle();
 
-  // 1. Create the tubes for the outer shapes of the volumes
-  double bathRmin, bathRmax;
+  double bathRmin = caloDim.rmin(); // - margin for inclination
+  double bathRmax = caloDim.rmax(); // + margin for inclination
+  DD4hep::Geometry::Tube bathOuterShape(bathRmin, bathRmax, caloDim.dz()); // make it 4 volumes + 5th for detector envelope
   if (cryoThicknessFront > 0) {
-    bathRmin = cryoDim.rmin2();
-    bathRmax = cryoDim.rmax1();
-  } else {
-    bathRmin = caloDim.rmin();
-    bathRmax = caloDim.rmax();
-  }
-  DD4hep::Geometry::Tube bathOuterShape(bathRmin, bathRmax, caloDim.dz());
-  if (cryoThicknessFront > 0) {
-    DD4hep::Geometry::Tube cryoOuterShape(cryoDim.rmin1(), cryoDim.rmax2(), cryoDim.dz());
-    // Subtract volumes to get the actual shape of cryo
-    DD4hep::Geometry::SubtractionSolid cryoShape(cryoOuterShape, bathOuterShape);
-
     // 1. Create cryostat
-    lLog << MSG::INFO << "ECAL cryostat: rmin (cm) = " << cryoDim.rmin1() << " rmax (cm) = " << cryoDim.rmax2()
-         << " thickness in front of ECal (cm) = " << cryoThicknessFront
-         << " thickness behind ECal (cm) = " << cryoThicknessBack << endmsg;
-    DD4hep::Geometry::Volume cryoVol(cryostat.nameStr(), cryoShape, aLcdd.material(cryostat.materialStr()));
-    DD4hep::Geometry::PlacedVolume cryoPhysVol = envelopeVol.placeVolume(cryoVol);
-    if (cryostat.isSensitive()) {
-      cryoVol.setSensitiveDetector(aSensDet);
-      cryoPhysVol.addPhysVolID("cryo", 1);
-      lLog << MSG::INFO << "Cryostat volume set as sensitive" << endmsg;
+    DD4hep::Geometry::Tube cryoFrontShape(cryoDim.rmin1(), cryoDim.rmin2(), cryoDim.dz());
+    DD4hep::Geometry::Tube cryoBackShape(cryoDim.rmax1(), cryoDim.rmax2(), cryoDim.dz());
+    DD4hep::Geometry::Tube cryoSideOuterShape(cryoDim.rmin2(), cryoDim.rmax1(), cryoDim.dz());
+    DD4hep::Geometry::SubtractionSolid cryoSideShape(cryoSideOuterShape, bathOuterShape);
+    lLog << MSG::INFO << "ECAL cryostat: front: rmin (cm) = " << cryoDim.rmin1() << " rmax (cm) = " << cryoDim.rmin2() << " dz (cm) = " << cryoDim.dz()  << endmsg;
+    lLog << MSG::INFO << "ECAL cryostat: back: rmin (cm) = " << cryoDim.rmax1() << " rmax (cm) = " << cryoDim.rmax2() << " dz (cm) = " << cryoDim.dz() << endmsg;
+    lLog << MSG::INFO << "ECAL cryostat: side: rmin (cm) = " << cryoDim.rmin2() << " rmax (cm) = " << cryoDim.rmax1() << " dz (cm) = " << cryoDim.dz() - caloDim.dz()  << endmsg;
+    DD4hep::Geometry::Volume cryoFrontVol(cryostat.nameStr()+"_front", cryoFrontShape, aLcdd.material(cryostat.materialStr()));
+    DD4hep::Geometry::Volume cryoBackVol(cryostat.nameStr()+"_back", cryoBackShape, aLcdd.material(cryostat.materialStr()));
+    DD4hep::Geometry::Volume cryoSideVol(cryostat.nameStr()+"_side", cryoSideShape, aLcdd.material(cryostat.materialStr()));
+    DD4hep::Geometry::PlacedVolume cryoFrontPhysVol = envelopeVol.placeVolume(cryoFrontVol);
+    DD4hep::Geometry::PlacedVolume cryoBackPhysVol = envelopeVol.placeVolume(cryoBackVol);
+    DD4hep::Geometry::PlacedVolume cryoSidePhysVol = envelopeVol.placeVolume(cryoSideVol);
+    if (cryoFrontSensitive) {
+      cryoFrontVol.setSensitiveDetector(aSensDet);
+      cryoFrontPhysVol.addPhysVolID("cryo", 1);
+      lLog << MSG::INFO << "Cryostat front volume set as sensitive" << endmsg;
     }
-    DD4hep::Geometry::DetElement cryoDetElem(caloDetElem, "cryo", 0);
-    cryoDetElem.setPlacement(cryoPhysVol);
-  }
-  // 2. Create bath that is inside the cryostat and surrounds the calorimeter
+    if (cryoBackSensitive) {
+      cryoBackVol.setSensitiveDetector(aSensDet);
+      cryoBackPhysVol.addPhysVolID("cryo", 2);
+      lLog << MSG::INFO << "Cryostat back volume set as sensitive" << endmsg;
+    }
+    if (cryoSideSensitive) {
+      cryoSideVol.setSensitiveDetector(aSensDet);
+      cryoSidePhysVol.addPhysVolID("cryo", 3);
+      lLog << MSG::INFO << "Cryostat front volume set as sensitive" << endmsg;
+    }
+    DD4hep::Geometry::DetElement cryoFrontDetElem(caloDetElem, "cryo_front", 0);
+    cryoFrontDetElem.setPlacement(cryoFrontPhysVol);
+    DD4hep::Geometry::DetElement cryoBackDetElem(caloDetElem, "cryo_back", 0);
+    cryoBackDetElem.setPlacement(cryoBackPhysVol);
+    DD4hep::Geometry::DetElement cryoSideDetElem(caloDetElem, "cryo_side", 0);
+    cryoSideDetElem.setPlacement(cryoSidePhysVol);
+    // 1.2. Create place-holder for services
+    DD4hep::Geometry::Tube servicesFrontShape(cryoDim.rmin2(), bathRmin, caloDim.dz());
+    DD4hep::Geometry::Tube servicesBackShape(bathRmax, cryoDim.rmax1(), caloDim.dz());
+    lLog << MSG::INFO << "ECAL services: front: rmin (cm) = " << cryoDim.rmin2() << " rmax (cm) = " <<  bathRmin << " dz (cm) = " << caloDim.dz() << endmsg;
+    lLog << MSG::INFO << "ECAL services: back: rmin (cm) = " << bathRmax << " rmax (cm) = " << cryoDim.rmax1() << " dz (cm) = " << caloDim.dz() << endmsg;
+    DD4hep::Geometry::Volume servicesFrontVol("services_front", servicesFrontShape, aLcdd.material(activeMaterial));
+    DD4hep::Geometry::Volume servicesBackVol("services_back", servicesBackShape, aLcdd.material(activeMaterial));
+    DD4hep::Geometry::PlacedVolume servicesFrontPhysVol = envelopeVol.placeVolume(servicesFrontVol);
+    DD4hep::Geometry::PlacedVolume servicesBackPhysVol = envelopeVol.placeVolume(servicesBackVol);
+    if (cryoFrontSensitive) {
+      servicesFrontVol.setSensitiveDetector(aSensDet);
+      servicesFrontPhysVol.addPhysVolID("cryo", 4);
+      lLog << MSG::INFO << "Services front volume set as sensitive" << endmsg;
+    }
+    if (cryoBackSensitive) {
+      servicesBackVol.setSensitiveDetector(aSensDet);
+      servicesBackPhysVol.addPhysVolID("cryo", 5);
+      lLog << MSG::INFO << "Services back volume set as sensitive" << endmsg;
+    }
+    DD4hep::Geometry::DetElement servicesFrontDetElem(caloDetElem, "services_front", 0);
+    servicesFrontDetElem.setPlacement(servicesFrontPhysVol);
+    DD4hep::Geometry::DetElement servicesBackDetElem(caloDetElem, "services_back", 0);
+    servicesBackDetElem.setPlacement(servicesBackPhysVol);
+    }
+  // 2. Create bath that is inside the cryostat and surrounds the detector
   //    Bath is filled with active material -> but not sensitive
   DD4hep::Geometry::Volume bathVol(activeMaterial + "_bath", bathOuterShape, aLcdd.material(activeMaterial));
   lLog << MSG::INFO << "ECAL bath: material = " << activeMaterial << " rmin (cm) =  " << bathRmin
@@ -455,11 +495,6 @@ static DD4hep::Geometry::Ref_t createECalBarrelInclined(DD4hep::Geometry::LCDD& 
     activePhysVols.back().addPhysVolID("type", 0);  // 0 = active, 1 = passive, 2 = readout
   }
   DD4hep::Geometry::PlacedVolume bathPhysVol = envelopeVol.placeVolume(bathVol);
-  if (cryostat.isSensitive()) {
-    bathVol.setSensitiveDetector(aSensDet);
-    bathPhysVol.addPhysVolID("cryo", 0);
-    lLog << MSG::INFO << "Bath volume set as sensitive" << endmsg;
-  }
   bathDetElem.setPlacement(bathPhysVol);
 
   for (uint iPlane = 0; iPlane < numPlanes; iPlane++) {

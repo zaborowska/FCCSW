@@ -1,9 +1,6 @@
 #ifndef DETCOMMON_DETUTILS_H
 #define DETCOMMON_DETUTILS_H
 
-// FCCSW
-#include "DetSegmentation/GridPhiEta.h"
-
 // DD4hep
 #include "DD4hep/DetFactoryHelper.h"
 #include "DD4hep/Segmentations.h"
@@ -11,6 +8,7 @@
 #include "DDSegmentation/CartesianGridXY.h"
 #include "DDSegmentation/CartesianGridXYZ.h"
 #include "DDSegmentation/PolarGridRPhi.h"
+#include "DDSegmentation/GridPhiEta.h"
 
 // Geant
 #include "G4Step.hh"

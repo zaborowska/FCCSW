@@ -5,10 +5,10 @@
 #include "GaudiAlg/GaudiTool.h"
 
 // FCCSW
-#include "DetSegmentation/GridPhiEta.h"
 #include "FWCore/DataHandle.h"
 #include "RecInterface/ITowerTool.h"
 class IGeoSvc;
+#include "DDSegmentation/GridPhiEta.h"
 
 // datamodel
 namespace fcc {

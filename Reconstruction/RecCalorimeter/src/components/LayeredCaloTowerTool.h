@@ -1,11 +1,10 @@
 #ifndef RECCALORIMETER_LAYEREDCALOTOWERTOOL_H
 #define RECCALORIMETER_LAYEREDCALOTOWERTOOL_H
 
-// from Gaudi
+// Gaudi
 #include "GaudiAlg/GaudiTool.h"
 
 // FCCSW
-#include "DetSegmentation/GridPhiEta.h"
 #include "FWCore/DataHandle.h"
 #include "RecInterface/ITowerTool.h"
 class IGeoSvc;
@@ -15,6 +14,8 @@ namespace fcc {
 class CaloHitCollection;
 }
 
+// DD4hep
+#include "DDSegmentation/GridPhiEta.h"
 namespace dd4hep {
 namespace DDSegmentation {
 class Segmentation;

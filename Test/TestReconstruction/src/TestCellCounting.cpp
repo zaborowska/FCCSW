@@ -3,7 +3,6 @@
 // FCCSW
 #include "DetCommon/DetUtils.h"
 #include "DetInterface/IGeoSvc.h"
-#include "DetSegmentation/GridPhiEta.h"
 
 // datamodel
 #include "datamodel/CaloHitCollection.h"
@@ -13,6 +12,7 @@
 #include "DDSegmentation/BitField64.h"
 #include "DDSegmentation/CartesianGridXY.h"
 #include "DDSegmentation/CartesianGridXYZ.h"
+#include "DDSegmentation/GridPhiEta.h"
 
 // ROOT
 #include "TGeoManager.h"

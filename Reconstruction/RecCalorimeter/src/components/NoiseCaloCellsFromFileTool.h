@@ -1,15 +1,17 @@
 #ifndef RECCALORIMETER_NOISECALOCELLSFROMFILETOOL_H
 #define RECCALORIMETER_NOISECALOCELLSFROMFILETOOL_H
 
-// from Gaudi
+// Gaudi
 #include "GaudiAlg/GaudiTool.h"
 #include "GaudiKernel/RndmGenerators.h"
 class IRndmGenSvc;
 
 // FCCSW
-#include "DetSegmentation/GridPhiEta.h"
 #include "RecInterface/INoiseCaloCellsTool.h"
 class IGeoSvc;
+
+//DD4hep
+#include "DDSegmentation/GridPhiEta.h"
 
 // Root
 class TH1F;

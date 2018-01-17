@@ -62,15 +62,13 @@ StatusCode InspectHitsCollectionsTool::saveOutput(const G4Event& aEvent) {
         for (size_t iter_hit = 0; iter_hit < n_hit; iter_hit++) {
           hitT = dynamic_cast<dd4hep::sim::Geant4TrackerHit*>(collect->GetHit(iter_hit));
           if (hitT) {
-            decoder->setValue(hitT->cellID);
             debug() << "hit Edep: " << hitT->energyDeposit << "\tcellID: " << hitT->cellID << "\t"
-                    << decoder->valueString() << endmsg;
+                    << decoder->valueString(hitT->cellID) << endmsg;
           } else {
             hitC = dynamic_cast<dd4hep::sim::Geant4CalorimeterHit*>(collect->GetHit(iter_hit));
             if (hitC) {
-              decoder->setValue(hitC->cellID);
               debug() << "hit Edep: " << hitC->energyDeposit << "\tcellID: " << hitC->cellID << "\t"
-                      << decoder->valueString() << endmsg;
+                      << decoder->valueString(hitC->cellID) << endmsg;
             }
           }
         }

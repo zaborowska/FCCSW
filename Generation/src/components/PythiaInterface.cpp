@@ -20,7 +20,7 @@
 #include "Generation/Units.h"
 
 // FCC EDM
-#include "datamodel/FloatValueCollection.h"
+#include "datamodel/FloatCollection.h"
 
 #include "HepMC/GenEvent.h"
 

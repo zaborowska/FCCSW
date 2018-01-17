@@ -15,7 +15,7 @@
 #include "modules/Delphes.h"
 
 // FCC EDM
-#include "datamodel/FloatValueCollection.h"
+#include "datamodel/FloatCollection.h"
 #include "datamodel/GenVertexCollection.h"
 #include "datamodel/MCParticleCollection.h"
 

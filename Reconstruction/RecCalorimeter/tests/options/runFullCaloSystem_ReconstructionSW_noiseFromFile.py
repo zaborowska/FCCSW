@@ -24,9 +24,9 @@ from Configurables import ApplicationMgr, FCCDataSvc, PodioOutput
 podioevent = FCCDataSvc("EventDataSvc", input="output_fullCalo_SimAndDigi_e50GeV_"+str(num_events)+"events.root")
 # reads HepMC text file and write the HepMC::GenEvent to the data service
 from Configurables import PodioInput
-podioinput = PodioInput("PodioReader", 
-                        collections = [ecalBarrelCellsName, ecalEndcapCellsName, ecalFwdCellsName, 
-                                       hcalBarrelCellsName, hcalExtBarrelCellsName, hcalEndcapCellsName, hcalFwdCellsName], 
+podioinput = PodioInput("PodioReader",
+                        collections = [ecalBarrelCellsName, ecalEndcapCellsName, ecalFwdCellsName,
+                                       hcalBarrelCellsName, hcalExtBarrelCellsName, hcalEndcapCellsName, hcalFwdCellsName],
                         OutputLevel = DEBUG)
 
 from Configurables import GeoSvc
@@ -40,9 +40,10 @@ geoservice = GeoSvc("GeoSvc", detectors=[  'file:Detector/DetFCChhBaseline1/comp
                                            ],
                     OutputLevel = INFO)
 
-
-ecalBarrelNoisePath = "/afs/cern.ch/user/n/novaj/public/elecNoise_sfcorrection_50Ohm_default_differentTraces.root"
+ecalBarrelNoisePath = "/afs/cern.ch/user/a/azaborow/public/FCCSW/elecNoise_ecalBarrel_50Ohm_traces2_2shieldWidth.root"
+ecalEndcapNoisePath = "/afs/cern.ch/user/n/novaj/public/elecNoise_emec_6layers.root"
 ecalBarrelNoiseHistName = "h_elecNoise_fcc_"
+ecalEndcapNoiseHistName = "h_elecNoise_fcc_"
 
 from Configurables import NoiseCaloCellsFromFileTool, TubeLayerPhiEtaCaloTool,CreateCaloCells
 noiseBarrel = NoiseCaloCellsFromFileTool("NoiseBarrel",
@@ -68,6 +69,26 @@ createEcalBarrelCells = CreateCaloCells("CreateECalBarrelCells",
                                         noiseTool = noiseBarrel,
                                         hits=ecalBarrelCellsName,
                                         cells=ecalBarrelCellsName + "Noise")
+
+from Configurables import NoiseCaloCellsFlatTool
+noiseEndcap = NoiseCaloCellsFlatTool("ECalNoise")
+
+# add noise, create all existing cells in detector
+endcapGeometry = TubeLayerPhiEtaCaloTool("EcalEndcapGeo",
+                                         readoutName = ecalEndcapReadoutName,
+                                         activeVolumeName = "layerEnvelope",
+                                         activeFieldName = "layer",
+                                         activeVolumesNumber = 6,
+                                         fieldNames = ["system"],
+                                         fieldValues = [6],
+                                         OutputLevel=DEBUG)
+createEcalEndcapCells = CreateCaloCells("CreateECalEndcapCells",
+                                        geometryTool = endcapGeometry,
+                                        doCellCalibration=False, # already calibrated
+                                        addCellNoise=True, filterCellNoise=False,
+                                        noiseTool = noiseEndcap,
+                                        hits=ecalEndcapCellsName,
+                                        cells=ecalEndcapCellsName+"Noise", OutputLevel=DEBUG)
 
 #Create calo clusters
 from Configurables import CreateCaloClustersSlidingWindow, CaloTowerTool
@@ -108,12 +129,10 @@ createClusters = CreateCaloClustersSlidingWindow("CreateClusters",
                                                  nEtaPosition = posE, nPhiPosition = posP,
                                                  nEtaDuplicates = dupE, nPhiDuplicates = dupP,
                                                  nEtaFinal = finE, nPhiFinal = finP,
-                                                 energyThreshold = threshold,
-                                                 OutputLevel = DEBUG)
+                                                 energyThreshold = threshold)
 createClusters.clusters.Path = "CaloClusters"
 
-out = PodioOutput("out", filename="output_allCalo_reco_noise.root",
-                   OutputLevel=DEBUG)
+out = PodioOutput("out", filename="output_allCalo_reco_noise.root")
 out.outputCommands = ["keep *"]
 
 #CPU information
@@ -127,6 +146,8 @@ out.AuditExecute = True
 
 ApplicationMgr(
     TopAlg = [podioinput,
+              createEcalBarrelCells,
+              createEcalEndcapCells,
               createClusters,
               out
               ],

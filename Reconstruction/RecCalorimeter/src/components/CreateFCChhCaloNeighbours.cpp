@@ -146,7 +146,7 @@ StatusCode CreateFCChhCaloNeighbours::initialize() {
     }
     auto decoder = m_geoSvc->lcdd()->readout(m_readoutNamesNested[iSys]).idSpec().decoder();
     // will be used for volume connecting
-    if (m_fieldNameNested == "system" && m_fieldValuesNested[iSys] == 6) {
+    if (m_fieldNameNested == "system" && m_fieldValuesNested[iSys] == 8) {
       decoderHCalBarrel = decoder;
     }
     // Get VolumeID
@@ -207,7 +207,7 @@ StatusCode CreateFCChhCaloNeighbours::initialize() {
     extrema.push_back(std::make_pair(0, activeVolumesNumbersNested.find(m_activeFieldNamesNested[1])->second - 1));
     extrema.push_back(std::make_pair(0, activeVolumesNumbersNested.find(m_activeFieldNamesNested[2])->second - 1));
     // for layer 0 of HCal barrel
-    if (m_fieldNameNested == "system" && m_fieldValuesNested[iSys] == 6) {
+    if (m_fieldNameNested == "system" && m_fieldValuesNested[iSys] == 8) {
       extremaHCalFirstLayerPhi =
           std::make_pair(0, activeVolumesNumbersNested.find(m_activeFieldNamesNested[1])->second - 1);
       extremaHCalFirstLayerZ =
@@ -248,7 +248,7 @@ StatusCode CreateFCChhCaloNeighbours::initialize() {
   ///      BARREL: connection ECAL + HCAL        ///
   /////////////////////////////////////////////////
   if (m_connectBarrels) {
-    // first check if ECAL barrel (system==5) and HCal barrel (system==6) are configured
+    // first check if ECAL barrel (system==5) and HCal barrel (system==8) are configured
     if (decoderECalBarrel == nullptr || decoderHCalBarrel == nullptr) {
       error() << "ECAL barrel and/or HCal barrel are not configured correctly!" << endmsg;
       return StatusCode::FAILURE;

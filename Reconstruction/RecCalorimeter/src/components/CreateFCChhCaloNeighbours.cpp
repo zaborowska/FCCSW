@@ -89,19 +89,19 @@ StatusCode CreateFCChhCaloNeighbours::initialize() {
       auto numCells = det::utils::numberOfCells(volumeId, *segmentation);
       debug() << "Number of segmentation cells in (phi,eta): " << numCells << endmsg;
       extrema[1] = std::make_pair(0, numCells[0] - 1);
-      extrema[2] = std::make_pair(numCells[2], numCells[1] - 1);
+      extrema[2] = std::make_pair(numCells[2], numCells[1] + numCells[2] - 1);
       // for layer N-1 of ECal barrel,  will be used for volume connecting
       if (ilayer == (m_activeVolumesNumbersSegmented[iSys] - 1) && m_fieldNamesSegmented[iSys] == "system" &&
           m_fieldValuesSegmented[iSys] == 5) {
         eCalLastLayer = m_activeVolumesNumbersSegmented[iSys] - 1;
         extremaECalLastLayerPhi = std::make_pair(0, numCells[0] - 1);
-        extremaECalLastLayerEta = std::make_pair(numCells[2], numCells[1] - 1);
+        extremaECalLastLayerEta = std::make_pair(numCells[2], numCells[1] + numCells[2] - 1);
       }
       // Loop over segmenation cells
       for (unsigned int iphi = 0; iphi < numCells[0]; iphi++) {
-        for (unsigned int ieta = numCells[2]; ieta < numCells[1]; ieta++) {
+        for (unsigned int ieta = 0; ieta < numCells[1]; ieta++) {
           (*decoder)["phi"] = iphi;
-          (*decoder)["eta"] = ieta;
+          (*decoder)["eta"] = ieta + numCells[2]; // start from the minimum existing eta cell in this layer
           uint64_t cellId = decoder->getValue();
           map.insert(std::pair<uint64_t, std::vector<uint64_t>>(
               cellId, det::utils::neighbours(*decoder, {m_activeFieldNamesSegmented[iSys], "phi", "eta"}, extrema,

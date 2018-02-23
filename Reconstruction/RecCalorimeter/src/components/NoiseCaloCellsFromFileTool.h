@@ -9,7 +9,13 @@ class IRndmGenSvc;
 // FCCSW
 #include "DetSegmentation/FCCSWGridPhiEta.h"
 #include "RecInterface/INoiseCaloCellsTool.h"
+#include "FWCore/DataHandle.h"
 class IGeoSvc;
+
+// datamodel
+namespace fcc {
+class CaloHitCollection;
+}
 
 // Root
 class TH1F;
@@ -82,6 +88,12 @@ private:
   SmartIF<IGeoSvc> m_geoSvc;
   /// PhiEta segmentation
   dd4hep::DDSegmentation::FCCSWGridPhiEta* m_segmentation;
+
+  /// Save noise in cells (values drawn per event)
+  Gaudi::Property<bool> m_storeNoise{this, "storeNoise", true,
+                                    "Store noise in hits collection, each value drawn from distribution"};
+  /// Handle for noise hits
+  DataHandle<fcc::CaloHitCollection> m_noiseCells{"noiseCells", Gaudi::DataHandle::Writer, this};
 };
 
 #endif /* RECCALORIMETER_NOISECALOCELLSFROMFILETOOL_H */

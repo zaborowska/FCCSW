@@ -4,6 +4,9 @@
 #include "DetCommon/DetUtils.h"
 #include "DetInterface/IGeoSvc.h"
 
+// datamodel
+#include "datamodel/CaloHitCollection.h"
+
 // DD4hep
 #include "DD4hep/Detector.h"
 
@@ -18,6 +21,7 @@ NoiseCaloCellsFromFileTool::NoiseCaloCellsFromFileTool(const std::string& type, 
                                                        const IInterface* parent)
     : GaudiTool(type, name, parent) {
   declareInterface<INoiseCaloCellsTool>(this);
+  declareProperty("noiseCells", m_noiseCells, "Handle for cells with noise");
 }
 
 StatusCode NoiseCaloCellsFromFileTool::initialize() {
@@ -58,9 +62,21 @@ StatusCode NoiseCaloCellsFromFileTool::initialize() {
 }
 
 void NoiseCaloCellsFromFileTool::addRandomCellNoise(std::unordered_map<uint64_t, double>& aCells) {
-  std::for_each(aCells.begin(), aCells.end(), [this](std::pair<const uint64_t, double>& p) {
-    p.second += (getNoiseConstantPerCell(p.first) * m_gauss.shoot());
-  });
+  if (m_storeNoise) {
+    auto edmCells = m_noiseCells.createAndPut();
+    for (auto& cell: aCells) {
+        double drawnNoise =  getNoiseConstantPerCell(cell.first) * m_gauss.shoot();
+        cell.second += drawnNoise;
+        auto edmCell = edmCells->create();
+        auto& edmCellCore = edmCell.core();
+        edmCellCore.cellId = cell.first;
+        edmCellCore.energy = drawnNoise;
+      };
+  } else {
+    std::for_each(aCells.begin(), aCells.end(), [this](std::pair<const uint64_t, double>& p) {
+        p.second += (getNoiseConstantPerCell(p.first) * m_gauss.shoot());
+      });
+  }
 }
 
 void NoiseCaloCellsFromFileTool::filterCellNoise(std::unordered_map<uint64_t, double>& aCells) {

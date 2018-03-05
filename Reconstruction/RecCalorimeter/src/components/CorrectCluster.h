@@ -94,6 +94,18 @@ private:
   Gaudi::Property<std::string> m_layerFieldName{this, "layerFieldName", "layer", "Identifier of layers"};
   /// Id of the first layer
   Gaudi::Property<uint> m_firstLayerId{this, "firstLayerId", 0, "ID of first layer"};
+  ///
+  Gaudi::Property<std::vector<double>> m_etaValues{this, "etaValues", {}, "Eta values"};
+  std::vector<double> m_etaBorders;
+  Gaudi::Property<std::vector<double>> m_presamplerShiftP0{this, "presamplerShiftP0", {}, "Upstream material param 00 as fnc of eta"};
+  ///
+  Gaudi::Property<std::vector<double>> m_presamplerScaleP0{this, "presamplerScaleP0", {}, "Upstream material param 10 as fnc of eta"};
+  ///
+  Gaudi::Property<std::vector<double>> m_presamplerShiftP1{this, "presamplerShiftP1", {}, "Upstream material param 01 as fnc of eta"};
+  ///
+Gaudi::Property<std::vector<double>> m_presamplerScaleP1{this, "presamplerScaleP1", {}, "Upstream material param 11 as fnc of eta"};
+  /// Histogram of upstream energy added to energy of clusters
+  TH1F* m_hUpstreamEnergy;
 };
 
 #endif /* RECCALORIMETER_CORRECTCLUSTER_H */

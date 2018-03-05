@@ -54,7 +54,7 @@ noiseBarrel = NoiseCaloCellsFromFileTool("NoiseBarrel",
                                          activeFieldName = "layer",
                                          addPileup = False,
                                          numRadialLayers = 8,
-                                         noiseCells = "ECalBarrelNoiseCells")
+                                         noiseCells = "ECalBarrelNoiseOnlyCells")
 barrelGeometry = TubeLayerPhiEtaCaloTool("EcalBarrelGeo",
                                          readoutName = ecalBarrelReadoutName,
                                          activeVolumeName = "LAr_sensitive",
@@ -147,10 +147,28 @@ createClusters = CreateCaloClustersSlidingWindow("CreateClusters",
                                                  energyThreshold = threshold, OutputLevel=DEBUG)
 createClusters.clusters.Path = "CaloClusters"
 
-from Configurables import CorrectCluster
+
+
+from Configurables import CorrectCluster, NoiseCorrectionToCellsTool
+cellPileupNoise = NoiseCorrectionToCellsTool("noise", OutputLevel = DEBUG)
+cellPileupNoise.ecalBarrelNoiseCells.Path="ECalBarrelNoiseOnlyCells"
 correctClusters = CorrectCluster("CorrectCluster",
                                  clusters = "CaloClusters",
                                  doNoiseCorrection = True,
+                                 noiseTool = cellPileupNoise,
+                                 etaRecalcWeights = [],
+                                 numLayers = [0],
+                                 upstreamParamsPath = "fake.root",
+                                 etaValues = [0,1],
+                                 presamplerShiftP0 = [0.03397, 0.03397],
+                                 presamplerShiftP1 = [6.347e-5, 6.347e-5],
+                                 presamplerScaleP0 = [0.119, 0.119],
+                                 presamplerScaleP1 = [0.07005, 0.07005],
+                                 # etaValues = [0],
+                                 # presamplerShiftP0 = [0.03397],
+                                 # presamplerShiftP1 = [6.347e-5],
+                                 # presamplerScaleP0 = [0.119],
+                                 # presamplerScaleP1 = [0.07005],
                                  OutputLevel=DEBUG)
 
 out = PodioOutput("out", filename="output_allCalo_reco_noise.root")

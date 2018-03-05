@@ -34,6 +34,8 @@ public:
   /** @brief Remove cells with energy bellow threshold*sigma from the vector of cells
    */
   virtual void filterCellNoise(std::unordered_map<uint64_t, double>& aCells) final;
+  // Return the constant sigma of noise
+  virtual double getNoiseConstantPerCell(int64_t /* aCellID */) final;
 
 private:
   /// Sigma of noise -- uniform noise per cell in GeV

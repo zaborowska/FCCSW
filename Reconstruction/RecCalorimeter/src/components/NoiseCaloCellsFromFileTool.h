@@ -50,7 +50,7 @@ public:
   /// Open file and read noise histograms in the memory
   StatusCode initNoiseFromFile();
   /// Find the appropriate noise constant from the histogram
-  double getNoiseConstantPerCell(int64_t aCellID);
+  virtual double getNoiseConstantPerCell(int64_t aCellID) final;
 
 private:
   /// Add pileup contribution to the electronics noise? (only if read from file)

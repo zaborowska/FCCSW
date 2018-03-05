@@ -40,4 +40,8 @@ void NoiseCaloCellsFlatTool::filterCellNoise(std::unordered_map<uint64_t, double
   }
 }
 
+double NoiseCaloCellsFlatTool::getNoiseConstantPerCell(int64_t /*aCellId */) {
+  return m_cellNoise;
+}
+
 StatusCode NoiseCaloCellsFlatTool::finalize() { return GaudiTool::finalize(); }

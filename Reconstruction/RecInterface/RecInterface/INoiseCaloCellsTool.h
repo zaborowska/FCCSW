@@ -18,6 +18,7 @@ public:
 
   virtual void addRandomCellNoise(std::unordered_map<uint64_t, double>& aCells) = 0;
   virtual void filterCellNoise(std::unordered_map<uint64_t, double>& aCells) = 0;
+  virtual double getNoiseConstantPerCell(int64_t aCell) = 0;
 };
 
 #endif /* RECINTERFACE_INOISECALOCELLSTOOL_H */

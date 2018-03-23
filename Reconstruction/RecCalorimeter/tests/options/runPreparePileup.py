@@ -19,16 +19,17 @@ podioinput = PodioInput("in", collections = ["ECalBarrelCells",
 
 from Configurables import GeoSvc
 geoservice = GeoSvc("GeoSvc", detectors = [ 'file:Detector/DetFCChhBaseline1/compact/FCChh_DectEmptyMaster.xml',
-                  'file:Detector/DetFCChhTrackerTkLayout/compact/Tracker.xml',
+                  # 'file:Detector/DetFCChhTrackerTkLayout/compact/Tracker.xml',
                   'file:Detector/DetFCChhECalInclined/compact/FCChh_ECalBarrel_withCryostat.xml',
-                  'file:Detector/DetFCChhHCalTile/compact/FCChh_HCalBarrel_TileCal.xml',
-                  'file:Detector/DetFCChhHCalTile/compact/FCChh_HCalExtendedBarrel_TileCal.xml',
-                  'file:Detector/DetFCChhCalDiscs/compact/Endcaps_coneCryo.xml',
-                  'file:Detector/DetFCChhCalDiscs/compact/Forward_coneCryo.xml',
-                  'file:Detector/DetFCChhTailCatcher/compact/FCChh_TailCatcher.xml',
-                  'file:Detector/DetFCChhBaseline1/compact/FCChh_Solenoids.xml',
-                  'file:Detector/DetFCChhBaseline1/compact/FCChh_Shielding.xml' ],
-                    OutputLevel = DEBUG)
+                  # 'file:Detector/DetFCChhHCalTile/compact/FCChh_HCalBarrel_TileCal.xml',
+                  # 'file:Detector/DetFCChhHCalTile/compact/FCChh_HCalExtendedBarrel_TileCal.xml',
+                  # 'file:Detector/DetFCChhCalDiscs/compact/Endcaps_coneCryo.xml',
+                  # 'file:Detector/DetFCChhCalDiscs/compact/Forward_coneCryo.xml',
+                  # 'file:Detector/DetFCChhTailCatcher/compact/FCChh_TailCatcher.xml',
+                  # 'file:Detector/DetFCChhBaseline1/compact/FCChh_Solenoids.xml',
+                  # 'file:Detector/DetFCChhBaseline1/compact/FCChh_Shielding.xml'
+],
+                    OutputLevel = WARNING)
 
 # Pileup in ECal Barrel
 # readout name
@@ -54,15 +55,43 @@ hcalBarrelGeometry = TubeLayerPhiEtaCaloTool("HcalBarrelGeo",
                                              fieldValues = [8],
                                              activeVolumesNumber = 10)
 
+
+from Configurables import CreateEmptyCaloCellsCollection
+createemptycells = CreateEmptyCaloCellsCollection("CreateEmptyCaloCells")
+createemptycells.cells.Path = "emptyCaloCells"
+#Create calo clusters
+from Configurables import CreateCaloClustersSlidingWindow, CaloTowerTool
+from GaudiKernel.PhysicalConstants import pi
+
+towers = CaloTowerTool("towers",
+                               deltaEtaTower = 0.01, deltaPhiTower = 2*pi/704.,
+                               ecalBarrelReadoutName = ecalBarrelReadoutNamePhiEta,
+                               ecalEndcapReadoutName = "",
+                               ecalFwdReadoutName = "",
+                               hcalBarrelReadoutName = "",
+                               hcalExtBarrelReadoutName = "",
+                               hcalEndcapReadoutName = "",
+                               hcalFwdReadoutName = "")
+towers.ecalBarrelCells.Path = "ECalBarrelCells"
+towers.ecalEndcapCells.Path = "emptyCaloCells"
+towers.ecalFwdCells.Path = "emptyCaloCells"
+towers.hcalBarrelCells.Path = "emptyCaloCells"
+towers.hcalExtBarrelCells.Path = "emptyCaloCells"
+towers.hcalEndcapCells.Path = "emptyCaloCells"
+towers.hcalFwdCells.Path = "emptyCaloCells"
+
 # call pileup tool
 # prepare TH2 histogram with pileup per abs(eta)
 from Configurables import PreparePileup
 pileupEcalBarrel = PreparePileup("PreparePileupEcalBarrel",
-                       geometryTool = ecalBarrelGeometry,
-                       readoutName = ecalBarrelReadoutNamePhiEta,
-                       layerFieldName = "layer",
-                       histogramName = "ecalBarrelEnergyVsAbsEta",
-                       numLayers = 8)
+                                 geometryTool = ecalBarrelGeometry,
+                                 readoutName = ecalBarrelReadoutNamePhiEta,
+                                 layerFieldName = "layer",
+                                 towerTool = towers,
+                                 histogramName = "ecalBarrelEnergyVsAbsEta",
+                                 etaSize = [1],
+                                 phiSize = [1],
+                                 numLayers = 8)
 pileupEcalBarrel.hits.Path="ECalBarrelCells"
 
 from Configurables import PreparePileup
@@ -95,10 +124,11 @@ podioinput.AuditExecute = True
 
 ApplicationMgr(
     TopAlg = [podioinput,
+              createemptycells,
               pileupEcalBarrel,
-              pileupHcalBarrel,
+              # pileupHcalBarrel,
               ],
     EvtSel = 'NONE',
-    EvtMax = 10,
+    EvtMax = -1,
     ExtSvc = [podioevent, geoservice],
  )

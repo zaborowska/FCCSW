@@ -43,7 +43,7 @@ hist = SamplingFractionInLayers("hists",
                                  activeFieldValue = 0,
                                  numLayers = 8,
                                  OutputLevel = INFO)
-hist.deposits.Path="ECalBarrelPositionedHits"
+hist.deposits.Path="ECalBarrelHits"
 
 THistSvc().Output = ["rec DATAFILE='histSF_inclined_e50GeV_eta0_1events.root' TYP='ROOT' OPT='RECREATE'"]
 THistSvc().PrintAll=True

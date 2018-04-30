@@ -11,10 +11,11 @@ class IGeoSvc;
 
 // datamodel
 namespace fcc {
-class PositionedCaloHitCollection;
+class CaloHitCollection;
 }
 
 class TH1F;
+class TH2F;
 class ITHistSvc;
 /** @class SamplingFractionInLayers SamplingFractionInLayers.h
  *
@@ -49,7 +50,7 @@ private:
   /// Pointer to the geometry service
   ServiceHandle<IGeoSvc> m_geoSvc;
   /// Handle for the energy deposits
-  DataHandle<fcc::PositionedCaloHitCollection> m_deposits{"rec/caloHits", Gaudi::DataHandle::Reader, this};
+  DataHandle<fcc::CaloHitCollection> m_deposits{"rec/caloHits", Gaudi::DataHandle::Reader, this};
   /// Name of the active field
   Gaudi::Property<std::string> m_activeFieldName{this, "activeFieldName", "", "Identifier of active material"};
   /// Value of the active material
@@ -64,6 +65,12 @@ private:
   Gaudi::Property<std::string> m_readoutName{this, "readoutName", "", "Name of the detector readout"};
   // Maximum energy for the axis range
   Gaudi::Property<double> m_energy{this, "energyAxis", 500, "Maximum energy for axis range"};
+  Gaudi::Property<std::vector<double>> m_layerRadius{this,
+                                                     "layerRadius",
+                                                     {1920 + 20 / 2., 1940 + 0.5 * 90, 1940 + 1.5 * 90, 1940 + 2.5 * 90,
+                                                      1940 + 3.5 * 90, 1940 + 4.5 * 90, 1940 + 5.5 * 90,
+                                                      1940 + 6.5 * 90},
+                                                     "Radii of detector layers for shower depth calculation [mm]."};
   // Histograms of total deposited energy within layer
   // Layers are numbered starting at 1. Layer 0 includes total energy deposited in cryostat and bath (in front and
   // behind calo)
@@ -77,6 +84,8 @@ private:
   TH1F* m_totalActiveEnergy;
   // Histograms of sampling fraction (active/total energy) calculated within layer
   std::vector<TH1F*> m_sfLayers;
+  // Histograms of sampling fraction (active/total energy) calculated within layer for a given shower depth
+  std::vector<TH2F*> m_sfLayersDepth;
   // Histogram of sampling fraction (active/total energy) calculated for the calorimeter (excluding cryostat and bath)
   TH1F* m_sf;
 };

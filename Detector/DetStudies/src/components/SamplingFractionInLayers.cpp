@@ -4,11 +4,12 @@
 #include "DetInterface/IGeoSvc.h"
 
 // datamodel
-#include "datamodel/PositionedCaloHitCollection.h"
+#include "datamodel/CaloHitCollection.h"
 
 #include "CLHEP/Vector/ThreeVector.h"
 #include "GaudiKernel/ITHistSvc.h"
 #include "TH1F.h"
+#include "TH2F.h"
 #include "TVector2.h"
 
 // DD4hep
@@ -59,6 +60,12 @@ StatusCode SamplingFractionInLayers::initialize() {
       error() << "Couldn't register histogram" << endmsg;
       return StatusCode::FAILURE;
     }
+    m_sfLayersDepth.push_back(new TH2F(("ecal_sf_layer_depth" + std::to_string(i)).c_str(),
+                                       ("SF for layer " + std::to_string(i)).c_str(), 1000, 0, 1, 1000, 1900, 2500));
+    if (m_histSvc->regHist("/rec/ecal_sf_layer_depth" + std::to_string(i), m_sfLayersDepth.back()).isFailure()) {
+      error() << "Couldn't register histogram" << endmsg;
+      return StatusCode::FAILURE;
+    }
   }
   m_totalEnergy = new TH1F("ecal_totalEnergy", "Total deposited energy", 1000, 0, 1.2 * m_energy);
   if (m_histSvc->regHist("/rec/ecal_total", m_totalEnergy).isFailure()) {
@@ -101,6 +108,13 @@ StatusCode SamplingFractionInLayers::execute() {
       }
     }
   }
+
+  double showerDepth = 0;
+  for (uint i = 0; i < m_numLayers; i++) {
+    showerDepth += m_layerRadius[i] * sumEactiveLayers[i];
+  }
+  showerDepth /= sumEactive;
+
   // Fill histograms
   m_totalEnergy->Fill(sumE);
   m_totalActiveEnergy->Fill(sumEactive);
@@ -118,6 +132,7 @@ StatusCode SamplingFractionInLayers::execute() {
     }
     if (sumElayers[i] > 0) {
       m_sfLayers[i]->Fill(sumEactiveLayers[i] / sumElayers[i]);
+      m_sfLayersDepth[i]->Fill(sumEactiveLayers[i] / sumElayers[i], showerDepth);
     }
   }
   return StatusCode::SUCCESS;

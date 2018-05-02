@@ -4,7 +4,8 @@
 // FCCSW
 #include "FWCore/DataHandle.h"
 #include "RecInterface/ICalorimeterTool.h"
-#include "DetSegmentation/GridPhiEta.h"
+#include "RecInterface/ITowerTool.h"
+#include "DetSegmentation/FCCSWGridPhiEta.h"
 class IGeoSvc;
 
 // Gaudi
@@ -23,8 +24,7 @@ class ITHistSvc;
  *
  *  Algorithm for calculating pileup noise per cell.
  *  Tube geometry with PhiEta segmentation expected.
- * 
- *  TODO: extend to calculate noise per cluster.
+ *
  *
  *  Flow of the program:
  *  1/ Create a map of empty cells (m_geoTool)
@@ -50,11 +50,26 @@ public:
 
   StatusCode finalize();
 
-  std::shared_ptr<DD4hep::DDSegmentation::BitField64> m_decoder;
+  dd4hep::DDSegmentation::BitField64* m_decoder;
   
 private:
+  /**  Correct way to access the neighbour of the phi tower, taking into account the full coverage in phi.
+   *   Full coverage means that first tower in phi, with ID = 0 is a direct neighbour
+   *   of the last tower in phi with ID = m_nPhiTower - 1).
+   *   @param[in] aIPhi requested ID of a phi tower, may be < 0 or >= m_nPhiTower
+   *   @return  ID of a tower - shifted and corrected (in [0, m_nPhiTower) range)
+   */
+  unsigned int phiNeighbour(int aIPhi) const;
   /// Handle for geometry tool (used to prepare map of all existing cellIDs for the system)
   ToolHandle<ICalorimeterTool> m_geoTool{"TubeLayerPhiEtaCaloTool", this};
+  /// Handle for the tower building tool
+  ToolHandle<ITowerTool> m_towerTool;
+  // calorimeter towers
+  std::vector<std::vector<float>> m_towers;
+  /// number of towers in eta (calculated from m_deltaEtaTower and the eta size of the first layer)
+  int m_nEtaTower;
+  /// Number of towers in phi (calculated from m_deltaPhiTower)
+  int m_nPhiTower;
 
   /// Handle for calo hits (input collection)
   DataHandle<fcc::CaloHitCollection> m_hits{"hits", Gaudi::DataHandle::Reader, this};
@@ -72,6 +87,10 @@ private:
   std::vector<TH2F*> m_energyVsAbsEta;
   /// 2D histogram with abs(eta) on x-axis and energy per cell per file on y-axis
   std::vector<TH2F*> m_energyAllEventsVsAbsEta;
+  /// 2D histogram with abs(eta) on x-axis and energy per cluster(s) per event on y-axis
+  std::vector<TH2F*> m_energyVsAbsEtaClusters;
+  /// 2D histogram with abs(eta) on x-axis and energy per cluster(s) per file on y-axis
+  std::vector<TH2F*> m_energyAllEventsVsAbsEtaClusters;
 
   /// Maximum energy in the m_energyVsAbsEta histogram, in GeV 
   Gaudi::Property<uint> m_maxEnergy{this, "maxEnergy", 20., "Maximum energy in the pile-up plot"};
@@ -83,8 +102,12 @@ private:
   Gaudi::Property<uint> m_numLayers{this, "numLayers", 8, "Number of layers"};
    /// Name of the detector readout
   Gaudi::Property<std::string> m_readoutName{this, "readoutName", "", "Name of the readout"};
+  /// Number of layersSize of cluster(s) in eta
+  Gaudi::Property<std::vector<uint>> m_etaSizes{this, "etaSize", {7}, "Size of cluster(s) in eta"};
+  /// Number of layersSize of cluster(s) in eta
+  Gaudi::Property<std::vector<uint>> m_phiSizes{this, "phiSize", {17}, "Size of cluster(s) in phi"};
   /// PhiEta segmentation (owned by DD4hep)
-  DD4hep::DDSegmentation::GridPhiEta* m_segmentation;
+  dd4hep::DDSegmentation::FCCSWGridPhiEta* m_segmentation;
 };
 
 #endif /* RECCALORIMETER_PREPAREPILEUP_H */

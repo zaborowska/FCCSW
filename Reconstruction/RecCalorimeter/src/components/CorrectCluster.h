@@ -117,6 +117,13 @@ private:
   Gaudi::Property<std::vector<double>> m_samplingFraction{this, "samplingFraction", {0.299041341789, 0.1306220735, 0.163243999965, 0.186360269398, 0.203778124831, 0.216211280314, 0.227140796653, 0.243315422934}, "Values of sampling fraction used in energy calibration"};
   /// Histogram of upstream energy added to energy of clusters
   TH1F* m_hUpstreamEnergy;
+  // Energy recalibration using sampling fraction dependent on cluster energy and shower depth
+  Gaudi::Property<std::string> m_samplingFractionParamsName{this, "SFname", "sf_electron_lead_8slicesDepth.root", "Name of the file with sampling fraction parameters"};
+   /// Values of layers' radii for shower depth calculation
+  Gaudi::Property<std::vector<double>> m_layerRadius{this, "layerRadius",  {1920 + 20 / 2., 1940 + 0.5 * 90, 1940 + 1.5 * 90, 1940 + 2.5 * 90, 1940 + 3.5 * 90, 1940 + 4.5 * 90, 1940 + 5.5 * 90, 1940 + 6.5 * 90}, "Radii of layers for shower depth calculation [mm]"};
+  std::vector<double> m_samplFractMapP0;
+  std::vector<double> m_samplFractMapP1;
+  TH1F* m_energyPostRecalib;
 };
 
 #endif /* RECCALORIMETER_CORRECTCLUSTER_H */

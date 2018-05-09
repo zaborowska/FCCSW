@@ -16,6 +16,8 @@
 
 // Root
 #include "TFile.h"
+#include "TTreeReader.h"
+#include "TTreeReaderValue.h"
 
 DECLARE_ALGORITHM_FACTORY(CorrectCluster)
 
@@ -106,6 +108,36 @@ StatusCode CorrectCluster::initialize() {
     // high eta to ensure all particles fall below
     m_etaBorders.push_back(100);
   }
+
+  m_energyPostRecalib = new TH1F("energyPostRecalib", "Energy; energy (GeV)", 1000, 0.5 * m_energy, 1.5 * m_energy);
+  if (m_histSvc->regHist("/rec/energyPostRecalib", m_energyPostRecalib).isFailure()) {
+    error() << "Couldn't register histogram" << endmsg;
+    return StatusCode::FAILURE;
+  }
+  // check if file exists
+  if (m_samplingFractionParamsName.empty()) {
+    error() << "Name of the file not set" << endmsg;
+    return StatusCode::FAILURE;
+  }
+  TFile file(m_samplingFractionParamsName.value().c_str(), "READ");
+  if (file.IsZombie()) {
+    error() << "Couldn't open the file" << endmsg;
+    return StatusCode::FAILURE;
+  } else {
+    info() << "Opening the file: " << m_samplingFractionParamsName << endmsg;
+  }
+  std::string treeName = "samplingFraction" + std::to_string(int(m_energy))+"GeV";
+  TTreeReader myReader(treeName.c_str(), &file);
+  TTreeReaderValue<Double_t> readParam0(myReader, "depthFitP0");
+  TTreeReaderValue<Double_t> readParam1(myReader, "depthFitP1");
+  while (myReader.Next()) {
+    m_samplFractMapP0.push_back(*readParam0);
+    m_samplFractMapP1.push_back(*readParam1);
+    info() << "PARAMETERS: 0: " << m_samplFractMapP0.back() << endmsg;
+    info() << "PARAMETERS: 1: " << m_samplFractMapP1.back() << endmsg;
+  }
+  info() << "PARAMETERS: length: " << m_samplFractMapP0.size() << endmsg;
+  info() << "PARAMETERS: length: " << m_samplFractMapP1.size() << endmsg;
   return StatusCode::SUCCESS;
 }
 
@@ -210,6 +242,28 @@ StatusCode CorrectCluster::execute() {
     debug() << "UPSTREAM corr: " << presamplerShift << "\t" << presamplerScale << "\t" << energyFront << endmsg;
     m_hUpstreamEnergy->Fill(energyFront);
     newCluster.core().energy += energyFront;
+
+    // Energy recalibration
+    double showerDepth = 0.;
+    double sumEnActive = 0;
+    for(auto cell = cluster.hits_begin(); cell != cluster.hits_end(); cell++) {
+      m_decoder[systemId]->setValue(cell->core().cellId);
+      uint layer = (*m_decoder[systemId])[m_layerFieldName] + m_firstLayerId;
+      sumEnActive += cell->core().energy * m_samplingFraction[layer];
+      showerDepth +=  m_layerRadius[layer] * cell->core().energy * m_samplingFraction[layer];
+    }
+    showerDepth /= sumEnActive;
+    warning() << " SHOWER DEPTH: " << showerDepth << endmsg;
+    double recalibEnergy = 0;
+   for (uint iLayer = 0; iLayer < m_numLayers; iLayer++) {
+    warning() << " SHOWER p0: " <<m_samplFractMapP0[iLayer]  << endmsg;
+    warning() << " SHOWER p1: " << m_samplFractMapP1[iLayer]  << endmsg;
+    warning() << " SHOWER d: " << showerDepth << endmsg;
+     double samplFractNew = m_samplFractMapP0[iLayer] + m_samplFractMapP1[iLayer] * showerDepth;
+     recalibEnergy += (sumEnLayer[iLayer] * samplFractNew / m_samplingFraction[iLayer]);
+   }
+    m_energyPostRecalib->Fill(recalibEnergy);
+
 
     // Fill histograms
     m_hEnergyPreAnyCorrections->Fill(cluster.core().energy);
